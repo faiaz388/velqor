@@ -1,22 +1,29 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { Plus, Search, Filter, MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import { Plus, Search, Filter, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/ui/toast";
 
+interface Product {
+  id: string;
+  name: string;
+  sku: string;
+  status: string;
+  price: number;
+  stock: number;
+  category: string;
+}
+
 export default function AdminProductsPage() {
   const { addToast } = useToast();
-  const [products, setProducts] = React.useState<any[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
+  const [products, setProducts] = React.useState<Product[]>([]);
   const supabase = createClient();
 
   const fetchProducts = React.useCallback(async () => {
-    setIsLoading(true);
     const { data } = await supabase
       .from("products")
       .select("*, categories(name)")
@@ -33,7 +40,6 @@ export default function AdminProductsPage() {
         category: p.categories?.name || "Uncategorized"
       })));
     }
-    setIsLoading(false);
   }, [supabase]);
 
   const deleteProduct = async (id: string, name: string) => {
@@ -45,8 +51,9 @@ export default function AdminProductsPage() {
       
       addToast({ title: "Product deleted", type: "success" });
       fetchProducts();
-    } catch (error: any) {
-      addToast({ title: "Delete failed", description: error.message, type: "error" });
+    } catch (error) {
+      const err = error as Error;
+      addToast({ title: "Delete failed", description: err.message, type: "error" });
     }
   };
 
@@ -60,7 +67,7 @@ export default function AdminProductsPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-serif text-black mb-1">Products</h1>
-          <p className="text-sm text-black/60">Manage your store's inventory and categories.</p>
+          <p className="text-sm text-black/60">Manage your store&apos;s inventory and categories.</p>
         </div>
         <Link href="/admin/products/new">
           <Button variant="primary" className="gap-2 shadow-premium">

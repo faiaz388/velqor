@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Filter, ChevronDown, X, SlidersHorizontal } from "lucide-react";
@@ -9,12 +10,26 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase/client";
 
-export default function ProductsPage() {
+interface Category {
+  id: string;
+  name: string;
+}
+
+interface Product {
+  id: string;
+  slug: string;
+  title: string;
+  price: number;
+  salePrice: number | null;
+  imageTop: string;
+}
+
+function ProductsContent() {
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = React.useState(true);
   const [showFilters, setShowFilters] = React.useState(false);
-  const [products, setProducts] = React.useState<any[]>([]);
-  const [categories, setCategories] = React.useState<any[]>([]);
+  const [products, setProducts] = React.useState<Product[]>([]);
+  const [categories, setCategories] = React.useState<Category[]>([]);
   
   React.useEffect(() => {
     const fetchData = async () => {
@@ -83,7 +98,7 @@ export default function ProductsPage() {
             <div className="flex flex-col gap-3">
               <span className="font-medium text-sm">Category</span>
               <div className="flex flex-col gap-2">
-                {categories.map((cat: any) => (
+                {categories.map((cat) => (
                   <label key={cat.id} className="flex items-center gap-3 cursor-pointer group">
                     <div className="w-4 h-4 rounded border border-foreground/20 group-hover:border-accent transition-colors" />
                     <span className="text-sm text-foreground-secondary group-hover:text-foreground">{cat.name}</span>
@@ -192,5 +207,13 @@ export default function ProductsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <ProductsContent />
+    </Suspense>
   );
 }

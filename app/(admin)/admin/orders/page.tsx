@@ -4,18 +4,13 @@ import * as React from "react";
 import { 
   Search, 
   Filter, 
-  ShoppingBag, 
   Eye, 
   Printer, 
-  CheckCircle2,
-  Clock,
   Truck,
-  MoreHorizontal,
   X,
   ChevronDown,
   Mail,
   Phone,
-  Calendar,
   MapPin,
   CreditCard
 } from "lucide-react";

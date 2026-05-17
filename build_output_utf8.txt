@@ -1,0 +1,54 @@
+﻿
+> temp-app@0.1.0 build
+> next build
+
+  Γû▓ Next.js 14.2.35
+  - Environments: .env
+
+   Creating an optimized production build ...
+ Γ£ô Compiled successfully
+   Linting and checking validity of types ...
+
+./app/(admin)/admin/products/new/page.tsx
+329:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/(admin)/admin/products/[id]/page.tsx
+326:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+334:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+   Collecting page data ...
+   Generating static pages (0/15) ...
+   Generating static pages (3/15) 
+   Generating static pages (7/15) 
+   Generating static pages (11/15) 
+ Γ£ô Generating static pages (15/15)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+Γöî Γùï /                                    8.63 kB         227 kB
+Γö£ Γùï /_not-found                          876 B          88.4 kB
+Γö£ Γùï /admin                               4.46 kB         152 kB
+Γö£ Γùï /admin/content                       2.75 kB         141 kB
+Γö£ Γùï /admin/customers                     2.66 kB         140 kB
+Γö£ Γùï /admin/orders                        6.83 kB         147 kB
+Γö£ Γùï /admin/products                      4.13 kB         217 kB
+Γö£ ╞Æ /admin/products/[id]                 5.93 kB         250 kB
+Γö£ Γùï /admin/products/new                  7.04 kB         251 kB
+Γö£ Γùï /admin/settings                      2.23 kB         140 kB
+Γö£ Γùï /checkout                            7.79 kB         160 kB
+Γö£ Γùï /order-confirmed                     3.44 kB         151 kB
+Γö£ Γùï /products                            4.74 kB         223 kB
+Γöö ╞Æ /products/[slug]                     4.97 kB         223 kB
++ First Load JS shared by all            87.6 kB
+  Γö£ chunks/117-cce0195e2382e46d.js       31.9 kB
+  Γö£ chunks/fd9d1056-2c949a340e13e410.js  53.6 kB
+  Γöö other shared chunks (total)          2.02 kB
+
+
+╞Æ Middleware                             81.7 kB
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+

@@ -40,7 +40,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (stored) {
         setItems(JSON.parse(stored));
       }
-    } catch (e) {
+    } catch {
       console.error("Failed to load cart");
     }
     setIsLoaded(true);

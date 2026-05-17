@@ -4,11 +4,27 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Star, ShieldCheck, Truck, RefreshCw } from "lucide-react";
+import { ArrowRight, ShieldCheck, Truck, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ProductCard } from "@/components/storefront/product-card";
 import { createClient } from "@/lib/supabase/client";
+
+interface Product {
+  id: string;
+  slug: string;
+  title: string;
+  price: number;
+  salePrice: number | null;
+  imageTop: string;
+  badge?: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  image: string;
+}
 
 const HERO_SLIDES = [
   {
@@ -41,7 +57,7 @@ const fetchHomeData = async () => {
     .limit(3);
 
   return {
-    products: products?.map((p: any) => ({
+    products: products?.map((p: { id: string, slug: string, title: string, price: number, sale_price: number | null, product_images: { image_url: string }[] }) => ({
       id: p.id,
       slug: p.slug,
       title: p.title,
@@ -50,13 +66,13 @@ const fetchHomeData = async () => {
       imageTop: p.product_images?.[0]?.image_url || "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070&auto=format&fit=crop",
       badge: p.sale_price ? "SALE" : undefined
     })) || [],
-    categories: categories || []
+    categories: (categories as Category[]) || []
   };
 };
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = React.useState(0);
-  const [data, setData] = React.useState<{ products: any[], categories: any[] }>({ products: [], categories: [] });
+  const [data, setData] = React.useState<{ products: Product[], categories: Category[] }>({ products: [], categories: [] });
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -232,7 +248,7 @@ export default function Home() {
               visible: { transition: { staggerChildren: 0.1 } }
             }}
           >
-            {MOCK_PRODUCTS.map((prod: any) => (
+            {MOCK_PRODUCTS.map((prod) => (
               <motion.div
                 key={prod.id}
                 variants={{

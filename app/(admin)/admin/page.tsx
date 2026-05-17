@@ -10,7 +10,22 @@ import { Button } from "@/components/ui/button";
 // Dynamically import recharts to avoid SSR issues
 const RechartsChart = dynamic(() => import("@/components/admin/revenue-chart"), { ssr: false });
 
-const RECENT_ORDERS = [
+interface Order {
+  id: string;
+  customer: string;
+  status: "processing" | "shipped" | "delivered" | "pending";
+  amount: number;
+  date: string;
+}
+
+interface Product {
+  id: string;
+  name: string;
+  sold: number;
+  revenue: number;
+}
+
+const RECENT_ORDERS: Order[] = [
   { id: "ORD-73A8B1", customer: "Sophia Chen", status: "processing", amount: 145.00, date: "2 mins ago" },
   { id: "ORD-94C2F5", customer: "James Wilson", status: "shipped", amount: 320.50, date: "1 hour ago" },
   { id: "ORD-21E8D9", customer: "Emma Thompson", status: "delivered", amount: 85.00, date: "3 hours ago" },
@@ -18,13 +33,21 @@ const RECENT_ORDERS = [
   { id: "ORD-88F4C2", customer: "Oliver Garcia", status: "shipped", amount: 450.00, date: "1 day ago" },
 ];
 
-const TOP_PRODUCTS = [
+const TOP_PRODUCTS: Product[] = [
   { id: "p1", name: "Essential Organic T-Shirt", sold: 342, revenue: 15390 },
   { id: "p2", name: "Heavyweight Boxy Hoodie", sold: 215, revenue: 25800 },
   { id: "p3", name: "Structured Leather Tote", sold: 89, revenue: 22250 },
 ];
 
-function MetricCard({ title, value, change, icon: Icon, trend = "up" }: { title: string; value: string; change: string; icon: any; trend?: string }) {
+interface MetricCardProps {
+  title: string;
+  value: string;
+  change: string;
+  icon: React.ElementType;
+  trend?: "up" | "down";
+}
+
+function MetricCard({ title, value, change, icon: Icon, trend = "up" }: MetricCardProps) {
   return (
     <div className="bg-white rounded-xl border border-black/5 p-6 shadow-sm">
       <div className="flex justify-between items-start mb-4">

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion, HTMLMotionProps } from "framer-motion";
+import { motion } from "framer-motion";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
@@ -50,7 +50,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         whileTap={{ scale: 0.97 }}
-        {...(props as any)}
+        {...(props as React.ComponentProps<typeof motion.button>)}
       >
         {children}
         {variant === "primary" && (

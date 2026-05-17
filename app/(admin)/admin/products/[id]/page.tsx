@@ -3,29 +3,24 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
+import { motion } from "framer-motion";
 import { 
   ChevronLeft, 
   Upload, 
   X, 
   Loader2, 
-  Check, 
   Package,
   Eye,
-  Settings2,
-  Trash2,
   DollarSign,
   Plus,
   Settings,
-  Palette,
-  Ruler,
-  FolderPlus,
 } from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import { cn, slugify, formatCurrency } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
 import { createClient } from "@/lib/supabase/client";
 
@@ -34,14 +29,17 @@ const productSchema = z.object({
   title: z.string().min(1, "Title is required"),
   slug: z.string().min(1, "Slug is required"),
   description: z.string().optional(),
-  price: z.any(),
-  sale_price: z.any().optional(),
-  stock_quantity: z.any().optional(),
+  price: z.coerce.number(),
+  sale_price: z.coerce.number().optional().nullable(),
+  stock_quantity: z.coerce.number().default(0),
   track_inventory: z.boolean().default(true),
   sku: z.string().optional(),
   status: z.string().default("active"),
   category_id: z.string().min(1, "Please select a category"),
-  options: z.array(z.any()).optional().default([]),
+  options: z.array(z.object({
+    name: z.string(),
+    values: z.array(z.string())
+  })).optional().default([]),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -72,7 +70,8 @@ export default function EditProductPage() {
     control,
     formState: { errors }
   } = useForm<ProductFormValues>({
-    resolver: zodResolver(productSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(productSchema) as any,
   });
 
   const { fields, append, remove, replace } = useFieldArray({
@@ -80,9 +79,6 @@ export default function EditProductPage() {
     name: "options"
   });
 
-  const productTitle = watch("title");
-  const regularPrice = watch("price");
-  const salePrice = watch("sale_price");
   const options = watch("options");
 
   const fetchData = React.useCallback(async () => {
@@ -115,20 +111,21 @@ export default function EditProductPage() {
 
       // Populate Images
       if (product.product_images) {
-        setExistingImages(product.product_images.map((img: any) => ({ id: img.id, url: img.image_url })));
+        setExistingImages(product.product_images.map((img: { id: string, image_url: string }) => ({ id: img.id, url: img.image_url })));
       }
 
       // Populate Variations
       if (product.product_options) {
-        const formattedOptions = product.product_options.map((opt: any) => ({
+        const formattedOptions = product.product_options.map((opt: { name: string, product_option_values: { value: string }[] }) => ({
           name: opt.name,
-          values: opt.product_option_values.map((v: any) => v.value)
+          values: opt.product_option_values.map((v) => v.value)
         }));
         replace(formattedOptions);
       }
 
-    } catch (error: any) {
-      addToast({ title: "Error loading product", description: error.message, type: "error" });
+    } catch (error) {
+      const err = error as Error;
+      addToast({ title: "Error loading product", description: err.message, type: "error" });
       router.push("/admin/products");
     } finally {
       setIsLoading(false);
@@ -179,7 +176,7 @@ export default function EditProductPage() {
     setValue(`options.${optionIndex}.values`, currentValues);
   };
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: ProductFormValues) => {
     setIsSubmitting(true);
     addToast({ title: "Updating product...", type: "info" });
 
@@ -248,9 +245,10 @@ export default function EditProductPage() {
 
       addToast({ title: "Product updated successfully!", type: "success" });
       router.push("/admin/products");
-    } catch (error: any) {
-      console.error("Update Error:", error);
-      addToast({ title: "Failed to update product", description: error.message, type: "error" });
+    } catch (error) {
+      const err = error as Error;
+      console.error("Update Error:", err);
+      addToast({ title: "Failed to update product", description: err.message, type: "error" });
     } finally {
       setIsSubmitting(false);
     }
@@ -326,7 +324,14 @@ export default function EditProductPage() {
                 {/* Existing Images */}
                 {existingImages.map((img) => (
                   <div key={img.id} className="relative aspect-square rounded-2xl overflow-hidden group border border-black/5 shadow-sm">
-                    <img src={img.url} alt="" className="w-full h-full object-cover" />
+                    <div className="relative aspect-square w-full h-full">
+                      <Image 
+                        src={img.url} 
+                        alt="Product" 
+                        fill 
+                        className="object-cover"
+                      />
+                    </div>
                     <button type="button" onClick={() => removeExistingImage(img.id)} className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all transform scale-75 group-hover:scale-100"><X className="w-3 h-3" /></button>
                   </div>
                 ))}

@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function AdminSettingsPage() {

@@ -3,13 +3,12 @@
 import * as React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Check, Package, Truck, Home, Search, Calendar, CreditCard, Printer } from "lucide-react";
+import { Check, Package, Truck, Home, Calendar, CreditCard, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, cn } from "@/lib/utils";
 
 export default function OrderConfirmedPage() {
   const [orderId] = React.useState(`VEL-${Math.floor(Math.random() * 90000) + 10000}`);
-  const [status, setStatus] = React.useState("processing");
 
   const steps = [
     { id: "pending", label: "Confirmed", icon: Check, active: true },
@@ -50,7 +49,7 @@ export default function OrderConfirmedPage() {
                 {/* Progress Line */}
                 <div className="absolute top-5 left-8 right-8 h-0.5 bg-foreground/5 -z-0" />
                 
-                {steps.map((step, idx) => (
+                {steps.map((step) => (
                   <div key={step.id} className="relative flex flex-col items-center z-10 gap-3">
                     <div className={cn(
                       "w-10 h-10 rounded-full flex items-center justify-center transition-colors shadow-sm",

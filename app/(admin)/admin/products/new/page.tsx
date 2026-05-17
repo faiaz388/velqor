@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -9,19 +10,14 @@ import {
   Upload, 
   X, 
   Loader2, 
-  Check, 
   Package,
   Eye,
-  Settings2,
-  Trash2,
   DollarSign,
   Plus,
   Settings,
   Palette,
   Ruler,
-  Percent,
-  FolderPlus,
-  ArrowRight
+  FolderPlus
 } from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,14 +32,17 @@ const productSchema = z.object({
   title: z.string().min(1, "Title is required"),
   slug: z.string().min(1, "Slug is required"),
   description: z.string().optional(),
-  price: z.any(),
-  sale_price: z.any().optional(),
-  stock_quantity: z.any().optional(),
+  price: z.coerce.number(),
+  sale_price: z.coerce.number().optional().nullable(),
+  stock_quantity: z.coerce.number().default(0),
   track_inventory: z.boolean().default(true),
   sku: z.string().optional(),
   status: z.string().default("active"),
   category_id: z.string().min(1, "Please select a category"),
-  options: z.array(z.any()).optional().default([]),
+  options: z.array(z.object({
+    name: z.string(),
+    values: z.array(z.string())
+  })).optional().default([]),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -71,7 +70,8 @@ export default function NewProductPage() {
     control,
     formState: { errors, isDirty }
   } = useForm<ProductFormValues>({
-    resolver: zodResolver(productSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(productSchema) as any,
     defaultValues: {
       title: "",
       slug: "",
@@ -94,9 +94,6 @@ export default function NewProductPage() {
   });
 
   const productTitle = watch("title");
-  const regularPrice = watch("price");
-  const salePrice = watch("sale_price");
-  const stockQty = watch("stock_quantity") || 0;
   const options = watch("options");
 
   const fetchCategories = React.useCallback(async () => {
@@ -135,8 +132,9 @@ export default function NewProductPage() {
       setValue("category_id", data.id);
       setIsCategoryModalOpen(false);
       setNewCategoryName("");
-    } catch (error: any) {
-      addToast({ title: "Error", description: error.message, type: "error" });
+    } catch (error) {
+      const err = error as Error;
+      addToast({ title: "Error", description: err.message, type: "error" });
     } finally {
       setIsCreatingCategory(false);
     }
@@ -178,7 +176,7 @@ export default function NewProductPage() {
     setValue(`options.${optionIndex}.values`, currentValues);
   };
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: ProductFormValues) => {
     console.log("Submit clicked", data);
     addToast({ title: "Publishing...", description: "Connecting to database", type: "info" });
     setIsSubmitting(true);
@@ -249,15 +247,15 @@ export default function NewProductPage() {
 
       addToast({ title: "Product published successfully!", type: "success" });
       router.push("/admin/products");
-    } catch (error: any) {
-      console.error("Submission Error:", error);
-      addToast({ title: "Failed to create product", description: error.message || "Unknown error", type: "error" });
+    } catch (error) {
+      const err = error as Error;
+      console.error("Submission Error:", err);
+      addToast({ title: "Failed to create product", description: err.message || "Unknown error", type: "error" });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const discountValue = regularPrice && salePrice ? Math.round(((regularPrice - salePrice) / regularPrice) * 100) : 0;
 
   return (
     <div className="min-h-screen bg-[#F5F5F0] pb-20">
@@ -329,7 +327,12 @@ export default function NewProductPage() {
                 <div className="grid grid-cols-5 gap-4 mt-8">
                   {images.map((img, i) => (
                     <div key={img.preview} className="relative aspect-square rounded-2xl overflow-hidden group border border-black/5 shadow-sm">
-                      <img src={img.preview} alt="" className="w-full h-full object-cover" />
+                      <Image 
+                        src={img.preview} 
+                        alt={`Product ${i}`} 
+                        fill 
+                        className="object-cover"
+                      />
                       <button type="button" onClick={() => removeImage(i)} className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all transform scale-75 group-hover:scale-100"><X className="w-3 h-3" /></button>
                     </div>
                   ))}
@@ -361,7 +364,7 @@ export default function NewProductPage() {
                           <div className="flex-1 space-y-4">
                              <label className="text-[10px] font-black uppercase tracking-widest text-black/40 block ml-1 font-serif">Values (Press Enter)</label>
                              <div className="flex flex-wrap gap-2 mb-4 min-h-[56px] p-3 bg-white rounded-2xl border border-black/5 shadow-inner leading-relaxed">
-                                {options[index]?.values.map((v, vIdx) => (
+                                {options[index]?.values.map((v: string, vIdx: number) => (
                                     <span key={vIdx} className="px-3 py-1.5 bg-black text-white text-[11px] font-bold rounded-lg flex items-center gap-2 animate-in fade-in zoom-in duration-300">
                                         {v}
                                         <button type="button" onClick={() => removeOptionValue(index, vIdx)}><X className="w-3 h-3 text-white/50 hover:text-white" /></button>
@@ -371,6 +374,7 @@ export default function NewProductPage() {
                              <div className="flex gap-2">
                                 <input 
                                     value={currentValueInput[index] || ""}
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                     onChange={(e) => setCurrentValueInput(prev => ({ ...prev, [index]: e.target.value }))}
                                     onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); addOptionValue(index); } }}
                                     placeholder="Add value..."

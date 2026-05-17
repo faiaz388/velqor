@@ -10,7 +10,31 @@ import { useCart } from "@/lib/hooks/use-cart";
 import { formatCurrency, cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 
-const fetchProductBySlug = async (slug: string) => {
+interface ProductColor {
+  id: string;
+  name: string;
+  hex: string;
+}
+
+interface ProductSize {
+  id: string;
+  name: string;
+  inStock: boolean;
+}
+
+interface Product {
+  id: string;
+  title: string;
+  price: number;
+  salePrice: number | null;
+  sku: string;
+  description: string;
+  images: string[];
+  colors: ProductColor[];
+  sizes: ProductSize[];
+}
+
+const fetchProductBySlug = async (slug: string): Promise<Product | null> => {
   const supabase = createClient();
   const { data: product } = await supabase
     .from("products")
@@ -28,42 +52,15 @@ const fetchProductBySlug = async (slug: string) => {
     sku: product.sku,
     description: product.description,
     images: product.product_images?.length > 0 
-      ? product.product_images.map((img: any) => img.image_url) 
+      ? product.product_images.map((img: { image_url: string }) => img.image_url) 
       : ["https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070&auto=format&fit=crop"],
-    colors: product.product_options?.find((o: any) => o.name.toLowerCase().includes("color"))?.product_option_values?.map((v: any) => ({
-        id: v.id, name: v.value, hex: v.value // Fallback hex to common names
+    colors: product.product_options?.find((o: { name: string }) => o.name.toLowerCase().includes("color"))?.product_option_values?.map((v: { id: string, value: string }) => ({
+        id: v.id, name: v.value, hex: v.value
     })) || [],
-    sizes: product.product_options?.find((o: any) => o.name.toLowerCase().includes("size"))?.product_option_values?.map((v: any) => ({
+    sizes: product.product_options?.find((o: { name: string }) => o.name.toLowerCase().includes("size"))?.product_option_values?.map((v: { id: string, value: string }) => ({
         id: v.id, name: v.value, inStock: true
     })) || [],
   };
-};
-
-const MOCK_PRODUCT = {
-  id: "p1",
-  title: "Essential Organic T-Shirt",
-  price: 45,
-  salePrice: null,
-  sku: "VEL-TSHIRT-01",
-  rating: 4.8,
-  reviewsCount: 124,
-  description: "Crafted from 100% organic cotton, this t-shirt offers an unparalleled combination of softness, breathability, and durability. The tailored fit ensures a modern silhouette that holds its shape wash after wash.",
-  images: [
-    "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=1780&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1489987707023-afc82478163a?q=80&w=1780&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?q=80&w=1780&auto=format&fit=crop",
-  ],
-  colors: [
-    { id: "c1", name: "Off White", hex: "#F5F5F0" },
-    { id: "c2", name: "Deep Black", hex: "#1A1A1A" },
-    { id: "c3", name: "Navy Blue", hex: "#2563EB" },
-  ],
-  sizes: [
-    { id: "s1", name: "S", inStock: true },
-    { id: "s2", name: "M", inStock: true },
-    { id: "s3", name: "L", inStock: false },
-    { id: "s4", name: "XL", inStock: true },
-  ],
 };
 
 function Accordion({ title, children, defaultOpen = false }: { title: string, children: React.ReactNode, defaultOpen?: boolean }) {
@@ -101,10 +98,10 @@ function Accordion({ title, children, defaultOpen = false }: { title: string, ch
 
 export default function ProductDetailPage({ params }: { params: { slug: string } }) {
   const { addItem } = useCart();
-  const [product, setProduct] = React.useState<any>(null);
+  const [product, setProduct] = React.useState<Product | null>(null);
   const [selectedImage, setSelectedImage] = React.useState(0);
-  const [selectedColor, setSelectedColor] = React.useState<any>(null);
-  const [selectedSize, setSelectedSize] = React.useState<any>(null);
+  const [selectedColor, setSelectedColor] = React.useState<ProductColor | null>(null);
+  const [selectedSize, setSelectedSize] = React.useState<ProductSize | null>(null);
   const [quantity, setQuantity] = React.useState(1);
   const [isZooming, setIsZooming] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
@@ -233,7 +230,7 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
                         Color <span className="text-foreground-secondary ml-1 lowercase tracking-normal font-normal">— {selectedColor?.name}</span>
                     </span>
                     <div className="flex gap-3">
-                        {product.colors.map((color: any) => (
+                        {product.colors.map((color) => (
                         <button
                             key={color.id}
                             onClick={() => setSelectedColor(color)}
@@ -258,7 +255,7 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
                         <button className="text-xs text-foreground-secondary underline decoration-foreground/20 hover:text-foreground">Size Guide</button>
                     </div>
                     <div className="flex flex-wrap gap-3">
-                        {product.sizes.map((size: any) => (
+                        {product.sizes.map((size) => (
                         <button
                             key={size.id}
                             disabled={!size.inStock}

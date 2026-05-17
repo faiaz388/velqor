@@ -1,0 +1,97 @@
+﻿
+> temp-app@0.1.0 build
+> next build
+
+  Γû▓ Next.js 14.2.35
+  - Environments: .env
+
+   Creating an optimized production build ...
+ Γ£ô Compiled successfully
+   Linting and checking validity of types ...
+
+./app/(admin)/admin/products/new/page.tsx
+329:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/(admin)/admin/products/[id]/page.tsx
+326:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+334:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+   Collecting page data ...
+   Generating static pages (0/15) ...
+   Generating static pages (3/15) 
+node.exe :  Γ¿» 
+useSearchParams() should 
+be wrapped in a suspense 
+boundary at page 
+"/products". Read more: htt
+ps://nextjs.org/docs/messag
+es/missing-suspense-with-cs
+r-bailout
+At C:\Program 
+Files\nodejs\npm.ps1:29 
+char:3
++   & $NODE_EXE 
+$NPM_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~
+    + CategoryInfo         
+     : NotSpecified: ( Γ¿  
+  » useSearchP...ith-csr   
+ -bailout:String) [], R    
+emoteException
+    + FullyQualifiedErrorI 
+   d : NativeCommandError
+ 
+    at o (D:\VELQOR\.next\s
+erver\chunks\433.js:1:10906
+)
+    at c (D:\VELQOR\.next\s
+erver\chunks\433.js:1:21842
+)
+    at g (D:\VELQOR\.next\s
+erver\app\(storefront)\prod
+ucts\page.js:1:2892)
+    at nj (D:\VELQOR\node_m
+odules\next\dist\compiled\n
+ext-server\app-page.runtime
+.prod.js:12:46252)
+    at nM (D:\VELQOR\node_m
+odules\next\dist\compiled\n
+ext-server\app-page.runtime
+.prod.js:12:47572)
+    at nL (D:\VELQOR\node_m
+odules\next\dist\compiled\n
+ext-server\app-page.runtime
+.prod.js:12:64547)
+    at nI (D:\VELQOR\node_m
+odules\next\dist\compiled\n
+ext-server\app-page.runtime
+.prod.js:12:47011)
+    at nM (D:\VELQOR\node_m
+odules\next\dist\compiled\n
+ext-server\app-page.runtime
+.prod.js:12:47718)
+    at nM (D:\VELQOR\node_m
+odules\next\dist\compiled\n
+ext-server\app-page.runtime
+.prod.js:12:61547)
+    at nL (D:\VELQOR\node_m
+odules\next\dist\compiled\n
+ext-server\app-page.runtime
+.prod.js:12:64547)
+
+Error occurred 
+prerendering page 
+"/products". Read more: htt
+ps://nextjs.org/docs/messag
+es/prerender-error
+
+   Generating static pages (7/15) 
+   Generating static pages (11/15) 
+ Γ£ô Generating static pages (15/15)
+
+> Export encountered 
+errors on following paths:
+	/(storefront)/products/pag
+e: /products
