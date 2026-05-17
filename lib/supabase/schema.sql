@@ -47,18 +47,41 @@ CREATE POLICY "Admins have full access" ON public.profiles
     )
   );
 
--- 5. Trigger for New User Profile Creation
+-- 5. Trigger for New User Profile Creation with fail-safes
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER 
+SET search_path = public
+AS $$
+DECLARE
+  username_val TEXT;
 BEGIN
-  INSERT INTO public.profiles (id, email, name, username, photo_url)
+  -- Extract username or fallback to email prefix
+  username_val := COALESCE(
+    NEW.raw_user_meta_data->>'username', 
+    SPLIT_PART(NEW.email, '@', 1)
+  );
+
+  -- Ensure username uniqueness by appending numeric suffix if needed
+  IF EXISTS (SELECT 1 FROM public.profiles WHERE username = username_val) THEN
+    username_val := username_val || SUBSTR(md5(random()::text), 1, 4);
+  END IF;
+
+  INSERT INTO public.profiles (id, email, name, username, photo_url, role)
   VALUES (
     NEW.id,
     NEW.email,
-    NEW.raw_user_meta_data->>'name',
-    NEW.raw_user_meta_data->>'username',
-    NEW.raw_user_meta_data->>'avatar_url'
-  );
+    COALESCE(NEW.raw_user_meta_data->>'name', 'New User'),
+    username_val,
+    COALESCE(NEW.raw_user_meta_data->>'avatar_url', NEW.raw_user_meta_data->>'photo_url'),
+    'user'
+  )
+  ON CONFLICT (id) DO NOTHING;
+  
+  RETURN NEW;
+EXCEPTION WHEN OTHERS THEN
+  -- Logging the error but allowing the auth user to be created
+  -- This prevents the "Database error" from blocking registration
+  RAISE WARNING 'Error creating profile for user %: %', NEW.id, SQLERRM;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
