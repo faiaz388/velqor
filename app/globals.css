@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #FAFAFA;
+    --background-secondary: #F5F5F0;
+    --foreground: #1A1A1A;
+    --foreground-secondary: #6B6B6B;
+    --accent: #2563EB;
+    --accent-hover: #1D4ED8;
+    --destructive: #DC2626;
+    --success: #16A34A;
+  }
+
+  /* Since the admin panel allows logo inversion for dark bg, but primary background is defined as FAFAFA,
+     we will stick to the defined design system. Minimal modifications. */
+     
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-accent selection:text-white;
+  }
+
+  /* Focus rings for accessibility per prompt */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-accent ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .shimmer-bg {
+    background: linear-gradient(
+      120deg,
+      rgba(255, 255, 255, 0) 40%,
+      rgba(255, 255, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0) 60%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite linear;
+  }
+
+  @keyframes shimmer {
+    to {
+      background-position: -200% 0;
+    }
+  }
+
+  .skeleton-loader {
+    @apply bg-background-secondary bg-gradient-to-r from-background-secondary via-background to-background-secondary;
+    background-size: 200% 100%;
+    animation: skeleton 1.5s infinite linear;
+  }
+
+  @keyframes skeleton {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+}

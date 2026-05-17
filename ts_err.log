@@ -1,0 +1,13 @@
+﻿app/(admin)/admin/page.tsx(110,19): error TS2322: Type '(value: number) => [string, string]' is not assignable to type 'Formatter<ValueType, NameType> & ((value: ValueType, name: NameType, item: TooltipPayloadEntry, index: number, payload: TooltipPayload) => ReactNode | [...])'.
+  Type '(value: number) => [string, string]' is not assignable to type 'Formatter<ValueType, NameType>'.
+    Types of parameters 'value' and 'value' are incompatible.
+      Type 'ValueType | undefined' is not assignable to type 'number'.
+        Type 'undefined' is not assignable to type 'number'.
+app/(admin)/admin/page.tsx(150,12): error TS2304: Cannot find name 'Link'.
+app/(admin)/admin/page.tsx(150,114): error TS2304: Cannot find name 'Link'.
+components/storefront/footer.tsx(2,10): error TS2305: Module '"lucide-react"' has no exported member 'Facebook'.
+components/storefront/footer.tsx(2,20): error TS2305: Module '"lucide-react"' has no exported member 'Instagram'.
+components/storefront/footer.tsx(2,31): error TS2305: Module '"lucide-react"' has no exported member 'Twitter'.
+components/storefront/footer.tsx(2,40): error TS2305: Module '"lucide-react"' has no exported member 'Youtube'.
+components/ui/button.tsx(55,9): error TS2322: Type 'ReactNode | MotionValueNumber | MotionValueString' is not assignable to type 'ReactNode'.
+  Type 'MotionValueNumber' is not assignable to type 'ReactNode'.
