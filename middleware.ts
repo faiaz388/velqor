@@ -39,14 +39,32 @@ export async function middleware(request: NextRequest) {
 
   // Protect Admin routes
   if (request.nextUrl.pathname.startsWith('/admin')) {
-    // Note: since this is mock until API keys are set, we will bypass the redirect
-    // so we can actually build and test it. Un-comment for production:
-    // if (!user) {
-    //   return NextResponse.redirect(new URL('/login', request.url))
-    // }
-    // Add role check logic for production:
-    // const { data: profile } = await supabase.from('profiles').select('role').eq('id', user?.id).single()
-    // if (profile?.role !== 'admin') { return NextResponse.redirect(new URL('/', request.url)) }
+    if (!user) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+    
+    // Check role in profiles table
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (profile?.role !== 'admin') {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+  }
+
+  // Protect User Dashboard
+  if (request.nextUrl.pathname === '/dashboard') {
+    if (!user) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+  }
+
+  // Prevent logged in users from visiting auth pages
+  if (user && ['/login', '/register', '/forgot-password'].includes(request.nextUrl.pathname)) {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
   return response

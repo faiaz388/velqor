@@ -24,6 +24,8 @@ export const metadata: Metadata = {
   description: "A premium e-commerce shopping experience.",
 };
 
+import { AuthProvider } from "@/context/auth-context";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -32,9 +34,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${dmSerif.variable} font-sans antialiased text-foreground bg-background`}>
-        <ToastProvider>
-          {children}
-        </ToastProvider>
+        <AuthProvider>
+          <ToastProvider>
+            {children}
+          </ToastProvider>
+        </AuthProvider>
       </body>
     </html>
   );
