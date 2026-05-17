@@ -44,7 +44,7 @@ export function Footer() {
             <Link href="/faq" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">FAQ</Link>
             <Link href="/shipping" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">Shipping & Returns</Link>
             <Link href="/contact" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">Contact Us</Link>
-            <Link href="/account/orders" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">Track Order</Link>
+            <Link href="/dashboard" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">Track Order</Link>
           </nav>
         </div>
 

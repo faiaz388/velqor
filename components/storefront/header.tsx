@@ -6,11 +6,13 @@ import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import { ShoppingCart, Search, Menu, User } from "lucide-react";
 import { useCart } from "@/lib/hooks/use-cart";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/auth-context";
 
 export function Header() {
   const { scrollY } = useScroll();
   const [isScrolled, setIsScrolled] = React.useState(false);
   const { itemCount, setIsCartOpen } = useCart();
+  const { user, profile } = useAuth();
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     if (latest > 50) {
@@ -51,9 +53,21 @@ export function Header() {
         <button className="text-foreground hover:text-accent transition-colors">
           <Search className="w-5 h-5" />
         </button>
-        <Link href="/account" className="hidden md:flex text-foreground hover:text-accent transition-colors">
-          <User className="w-5 h-5" />
+        
+        <Link 
+          href={user ? "/dashboard" : "/login"} 
+          className="hidden md:flex items-center gap-2 text-foreground hover:text-accent transition-colors"
+        >
+          {profile?.photo_url ? (
+            <div className="w-6 h-6 rounded-full overflow-hidden border border-foreground/10 bg-white/5">
+              <img src={profile.photo_url} alt="Profile" className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <User className="w-5 h-5" />
+          )}
+          {user && <span className="text-xs font-medium max-w-[80px] truncate">{profile?.name?.split(' ')[0] || profile?.username}</span>}
         </Link>
+
         <button 
           className="relative text-foreground hover:text-accent transition-colors"
           onClick={() => setIsCartOpen(true)}
