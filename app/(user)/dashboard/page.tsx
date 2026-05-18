@@ -19,8 +19,14 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <div className="relative">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent"></div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-2 h-2 bg-accent rounded-full animate-ping"></div>
+          </div>
+        </div>
+        <p className="text-sm text-foreground-secondary font-medium animate-pulse uppercase tracking-widest">Preparing your experience...</p>
       </div>
     );
   }
@@ -40,7 +46,19 @@ export default function DashboardPage() {
     );
   }
 
-  if (!profile) return null;
+  // Final fallback to prevent blank screen if everything fails but loading stopped
+  if (!user || !profile) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center px-6">
+         <div className="w-16 h-16 bg-accent/10 text-accent rounded-full flex items-center justify-center mb-4">
+            <LifeBuoy className="w-8 h-8" />
+         </div>
+         <h2 className="text-2xl font-serif text-foreground">Session Recovering</h2>
+         <p className="text-foreground-secondary max-w-md">We&apos;re having trouble identifying your session. This can happen during temporary interruptions.</p>
+         <Button variant="primary" onClick={() => window.location.href = '/login'}>Return to Login</Button>
+      </div>
+    );
+  }
 
   const tabs = [
     { id: "profile" as Tab, label: "My Profile", icon: User },

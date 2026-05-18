@@ -43,14 +43,21 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
     
-    // Check role in profiles table
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
+    // Check role in profiles table with a basic safety check
+    // We use a try-catch to ensure that even if the database fails, the middleware doesn't crash the request
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
 
-    if (profile?.role !== 'admin') {
+      if (profile?.role !== 'admin') {
+        return NextResponse.redirect(new URL('/', request.url))
+      }
+    } catch (err) {
+      console.error("Middleware profile check failed:", err)
+      // Fallback: If we can't verify admin status, redirect to safety (home)
       return NextResponse.redirect(new URL('/', request.url))
     }
   }

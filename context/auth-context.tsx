@@ -32,53 +32,93 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = React.useMemo(() => createClient(), []);
 
   const fetchProfile = React.useCallback(async (sessionUser: User) => {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", sessionUser.id)
-        .single();
+    // Add a race condition to prevent infinite hangs (RLS loop)
+    const profilePromise = (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", sessionUser.id)
+          .single();
 
-      if (error && error.code === 'PGRST116') {
-        const fallbackUsername = sessionUser.email ? sessionUser.email.split('@')[0] + Math.floor(Math.random()*10000) : 'user' + Math.floor(Math.random()*100000);
-        const { data: newProfile, error: insertError } = await supabase.from("profiles").insert({
-          id: sessionUser.id,
-          email: sessionUser.email,
-          name: sessionUser.user_metadata?.name || 'New User',
-          username: fallbackUsername,
-          role: 'user',
-          photo_url: sessionUser.user_metadata?.avatar_url || ''
-        }).select().single();
-        
-        if (newProfile) {
-          setProfile(newProfile);
+        if (error && error.code === 'PGRST116') {
+          const fallbackUsername = sessionUser.email 
+            ? sessionUser.email.split('@')[0] + Math.floor(Math.random()*10000) 
+            : 'user' + Math.floor(Math.random()*100000);
+            
+          const { data: newProfile, error: insertError } = await supabase.from("profiles").insert({
+            id: sessionUser.id,
+            email: sessionUser.email,
+            name: sessionUser.user_metadata?.name || 'New User',
+            username: fallbackUsername,
+            role: 'user',
+            photo_url: sessionUser.user_metadata?.avatar_url || ''
+          }).select().single();
+          
+          if (newProfile) {
+            setProfile(newProfile);
+            return newProfile;
+          } else {
+            console.error("Auto-repair failed:", insertError);
+            return null;
+          }
+        } else if (!error && data) {
+          setProfile(data);
+          return data;
         } else {
-          console.error("Auto-repair failed:", insertError);
+          console.error("Profile fetch error:", error);
+          return null;
         }
-      } else if (!error && data) {
-        setProfile(data);
-      } else {
-        console.error("Profile fetch error:", error);
+      } catch (err) {
+        console.error("Network or parsing error fetching profile:", err);
+        return null;
       }
+    })();
+
+    // 10 second timeout for profile fetch to prevent infinite hangs
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("Profile fetch timed out")), 10000)
+    );
+
+    try {
+      await Promise.race([profilePromise, timeoutPromise]);
     } catch (err) {
-      console.error("Network or parsing error fetching profile:", err);
+      console.error("Profile fetch failed or timed out:", err);
+      // Even if it fails, we shouldn't hang the UI forever
     }
   }, [supabase]);
 
   React.useEffect(() => {
+    let mounted = true;
+
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user);
+    const initAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        
+        if (!mounted) return;
+
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          await fetchProfile(session.user);
+        }
+      } catch (err) {
+        console.error("Initial auth error:", err);
+      } finally {
+        if (mounted) setLoading(false);
       }
-      setLoading(false);
-    });
+    };
+
+    initAuth();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+      
       setUser(session?.user ?? null);
       if (session?.user) {
+        setLoading(true); // Maintain loading state while fetching profile on change
         await fetchProfile(session.user);
       } else {
         setProfile(null);
@@ -87,6 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, [supabase, fetchProfile]);
