@@ -107,14 +107,21 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    fetchProductBySlug(params.slug).then(res => {
+    setLoading(true);
+    fetchProductBySlug(params.slug)
+      .then(res => {
         if (res) {
-            setProduct(res);
-            if (res.colors.length > 0) setSelectedColor(res.colors[0]);
-            if (res.sizes.length > 0) setSelectedSize(res.sizes[0]);
+          setProduct(res);
+          if (res.colors.length > 0) setSelectedColor(res.colors[0]);
+          if (res.sizes.length > 0) setSelectedSize(res.sizes[0]);
         }
+      })
+      .catch(err => {
+        console.error("Catastrophic error in product detail fetch:", err);
+      })
+      .finally(() => {
         setLoading(false);
-    });
+      });
   }, [params.slug]);
 
   if (loading) return (

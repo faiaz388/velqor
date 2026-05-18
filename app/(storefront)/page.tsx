@@ -41,33 +41,45 @@ const HERO_SLIDES = [
   }
 ];
 
-// Dynamic Data Fetching
 const fetchHomeData = async () => {
-  const supabase = createClient();
-  
-  const { data: products } = await supabase
-    .from("products")
-    .select("*, product_images(image_url)")
-    .eq("status", "active")
-    .limit(4);
+  try {
+    const supabase = createClient();
+    
+    const { data: products, error: productsError } = await supabase
+      .from("products")
+      .select("*, product_images(image_url)")
+      .eq("status", "active")
+      .limit(4);
 
-  const { data: categories } = await supabase
-    .from("categories")
-    .select("*")
-    .limit(3);
+    if (productsError) {
+      console.error("Error fetching products:", productsError);
+    }
 
-  return {
-    products: products?.map((p: { id: string, slug: string, title: string, price: number, sale_price: number | null, product_images: { image_url: string }[] }) => ({
-      id: p.id,
-      slug: p.slug,
-      title: p.title,
-      price: p.price,
-      salePrice: p.sale_price,
-      imageTop: p.product_images?.[0]?.image_url || "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070&auto=format&fit=crop",
-      badge: p.sale_price ? "SALE" : undefined
-    })) || [],
-    categories: (categories as Category[]) || []
-  };
+    const { data: categories, error: catError } = await supabase
+      .from("categories")
+      .select("*")
+      .limit(3);
+
+    if (catError) {
+      console.error("Error fetching categories:", catError);
+    }
+
+    return {
+      products: products?.map((p: { id: string, slug: string, title: string, price: number, sale_price: number | null, product_images: { image_url: string }[] }) => ({
+        id: p.id,
+        slug: p.slug,
+        title: p.title,
+        price: p.price,
+        salePrice: p.sale_price,
+        imageTop: p.product_images?.[0]?.image_url || "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070&auto=format&fit=crop",
+        badge: p.sale_price ? "SALE" : undefined
+      })) || [],
+      categories: (categories as Category[]) || []
+    };
+  } catch (error) {
+    console.error("Catastrophic failure in fetchHomeData:", error);
+    return { products: [], categories: [] };
+  }
 };
 
 export default function Home() {

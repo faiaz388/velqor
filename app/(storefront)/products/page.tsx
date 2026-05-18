@@ -34,28 +34,37 @@ function ProductsContent() {
   React.useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
-      const supabase = createClient();
-      
-      const { data: productsData } = await supabase
-        .from("products")
-        .select("*, product_images(image_url)")
-        .eq("status", "active");
+      try {
+        const supabase = createClient();
+        
+        const { data: productsData, error: pError } = await supabase
+          .from("products")
+          .select("*, product_images(image_url)")
+          .eq("status", "active");
 
-      const { data: categoriesData } = await supabase
-        .from("categories")
-        .select("*");
+        if (pError) console.error("Error fetching products:", pError);
 
-      setProducts(productsData?.map(p => ({
-        id: p.id,
-        slug: p.slug,
-        title: p.title,
-        price: p.price,
-        salePrice: p.sale_price,
-        imageTop: p.product_images?.[0]?.image_url || "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070&auto=format&fit=crop",
-      })) || []);
-      
-      setCategories(categoriesData || []);
-      setIsLoading(false);
+        const { data: categoriesData, error: cError } = await supabase
+          .from("categories")
+          .select("*");
+
+        if (cError) console.error("Error fetching categories:", cError);
+
+        setProducts(productsData?.map(p => ({
+          id: p.id,
+          slug: p.slug,
+          title: p.title,
+          price: p.price,
+          salePrice: p.sale_price,
+          imageTop: p.product_images?.[0]?.image_url || "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070&auto=format&fit=crop",
+        })) || []);
+        
+        setCategories(categoriesData || []);
+      } catch (error) {
+        console.error("Catastrophic error in products fetchData:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchData();
