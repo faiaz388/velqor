@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 interface Category {
   id: string;
   name: string;
-  image: string;
+  image_url: string;
   description?: string;
 }
 
@@ -79,7 +79,7 @@ export default function CategoriesPage() {
                   className="group block relative aspect-[4/5] rounded-3xl overflow-hidden shadow-sm"
                 >
                   <Image 
-                    src={cat.image || "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070&auto=format&fit=crop"} 
+                    src={cat.image_url || "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070&auto=format&fit=crop"} 
                     alt={cat.name} 
                     fill 
                     className="object-cover transition-transform duration-1000 group-hover:scale-105"

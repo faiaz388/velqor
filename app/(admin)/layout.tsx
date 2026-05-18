@@ -21,6 +21,7 @@ const NAV_ITEMS = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { name: "Products", href: "/admin/products", icon: Package },
+  { name: "Categories", href: "/admin/categories", icon: AlignLeft },
   { name: "Customers", href: "/admin/customers", icon: Users },
   { name: "Banners", href: "/admin/banners", icon: Bell },
   { name: "Content", href: "/admin/content", icon: FileText },

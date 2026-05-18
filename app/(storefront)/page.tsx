@@ -23,7 +23,7 @@ interface Product {
 interface Category {
   id: string;
   name: string;
-  image: string;
+  image_url: string;
 }
 
 interface Banner {
@@ -256,7 +256,7 @@ export default function Home() {
                 visible: { opacity: 1, x: 0, transition: { duration: 0.5, delay: i * 0.1 } }
               }}
             >
-              <Image src={cat.image} alt={cat.name} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
+              <Image src={cat.image_url || "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070&auto=format&fit=crop"} alt={cat.name} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
               <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-500" />
               <div className="absolute bottom-6 left-6 right-6">
                 <span className="bg-white/90 backdrop-blur-sm text-foreground px-4 py-2 rounded text-sm font-medium">

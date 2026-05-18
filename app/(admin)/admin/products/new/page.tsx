@@ -60,7 +60,9 @@ export default function NewProductPage() {
   // Create Category State
   const [isCategoryModalOpen, setIsCategoryModalOpen] = React.useState(false);
   const [newCategoryName, setNewCategoryName] = React.useState("");
+  const [newCategoryImageUrl, setNewCategoryImageUrl] = React.useState("");
   const [isCreatingCategory, setIsCreatingCategory] = React.useState(false);
+  const [uploadingCategoryType, setUploadingCategoryType] = React.useState(false);
 
   const { 
     register, 
@@ -120,7 +122,8 @@ export default function NewProductPage() {
         .from("categories")
         .insert({ 
             name: newCategoryName, 
-            slug: slugify(newCategoryName) 
+            slug: slugify(newCategoryName),
+            image_url: newCategoryImageUrl
         })
         .select()
         .single();
@@ -132,11 +135,32 @@ export default function NewProductPage() {
       setValue("category_id", data.id);
       setIsCategoryModalOpen(false);
       setNewCategoryName("");
+      setNewCategoryImageUrl("");
     } catch (error) {
       const err = error as Error;
       addToast({ title: "Error", description: err.message, type: "error" });
     } finally {
       setIsCreatingCategory(false);
+    }
+  };
+
+  const handleCategoryImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0]) return;
+    setUploadingCategoryType(true);
+    try {
+      const file = e.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `cat-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage.from("product-images").upload(fileName, file);
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage.from("product-images").getPublicUrl(fileName);
+      setNewCategoryImageUrl(publicUrl);
+    } catch (error) {
+      addToast({ title: "Upload failed", description: (error as Error).message, type: "error" });
+    } finally {
+      setUploadingCategoryType(false);
     }
   };
 
@@ -494,7 +518,7 @@ export default function NewProductPage() {
                     <h2 className="text-2xl font-serif text-black mb-2 uppercase tracking-tight">Create Category</h2>
                     <p className="text-xs text-black/40 font-bold uppercase tracking-widest">Grouping items helps in discovery.</p>
                   </div>
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-black/40 ml-1">Category Name</label>
                         <input 
@@ -505,6 +529,28 @@ export default function NewProductPage() {
                             className="w-full px-6 py-5 bg-[#F5F5F0] rounded-2xl outline-none font-bold text-lg border-2 border-transparent focus:border-blue-500/10 transition-all"
                             autoFocus
                         />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-black/40 ml-1">Cover Image</label>
+                        <div 
+                          className="relative aspect-video rounded-3xl bg-[#F5F5F0] border-2 border-dashed border-black/5 flex flex-col items-center justify-center overflow-hidden cursor-pointer hover:bg-black/5 transition-all"
+                          onClick={() => document.getElementById('catImgInput')?.click()}
+                        >
+                          {newCategoryImageUrl ? (
+                            <Image src={newCategoryImageUrl} alt="Cat Preview" fill className="object-cover" />
+                          ) : (
+                            <>
+                              {uploadingCategoryType ? (
+                                <Loader2 className="w-5 h-5 animate-spin text-black/20" />
+                              ) : (
+                                <Upload className="w-5 h-5 text-black/20" />
+                              )}
+                              <span className="text-[10px] font-bold text-black/20 uppercase mt-2">Upload</span>
+                            </>
+                          )}
+                          <input id="catImgInput" type="file" className="hidden" accept="image/*" onChange={handleCategoryImageUpload} />
+                        </div>
                     </div>
                   </div>
                   <Button 
