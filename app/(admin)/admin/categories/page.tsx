@@ -1,12 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { Plus, Search, Filter, Edit, Trash2, FolderPlus, Upload, X, Loader2, Image as ImageIcon } from "lucide-react";
+import { Plus, Search, Edit, Trash2, FolderPlus, Upload, X, Loader2, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/ui/toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn, slugify } from "@/lib/utils";
+import { slugify } from "@/lib/utils";
 import Image from "next/image";
 
 interface Category {
