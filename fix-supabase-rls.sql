@@ -29,6 +29,11 @@ DROP POLICY IF EXISTS "Admins can manage all categories" ON public.categories;
 DROP POLICY IF EXISTS "Admins can manage categories" ON public.categories;
 CREATE POLICY "Admins can manage all categories" ON public.categories USING (public.is_admin());
 
+-- 5. Fix Product Images and Variants Recursion
+DROP POLICY IF EXISTS "Admins can manage product images" ON public.product_images;
+DROP POLICY IF EXISTS "Admins can manage all product images" ON public.product_images;
+CREATE POLICY "Admins can manage product images" ON public.product_images USING (public.is_admin());
+
 -- The recent tables already had this fix added to schema.sql, 
 -- but you can run this to be completely safe:
 DROP POLICY IF EXISTS "Admins can manage all orders" ON public.orders;
