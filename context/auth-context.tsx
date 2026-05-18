@@ -75,9 +75,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     })();
 
-    // 10 second timeout for profile fetch to prevent infinite hangs
+    // 2 second timeout for profile fetch to prevent hangs
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error("Profile fetch timed out")), 10000)
+      setTimeout(() => reject(new Error("Profile fetch timed out")), 2000)
     );
 
     try {

@@ -37,14 +37,10 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Protect Admin routes
+  // Admin route protection
   if (request.nextUrl.pathname.startsWith('/admin')) {
-    if (!user) {
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
+    if (!user) return NextResponse.redirect(new URL('/login', request.url))
     
-    // Check role in profiles table with a basic safety check
-    // We use a try-catch to ensure that even if the database fails, the middleware doesn't crash the request
     try {
       const { data: profile } = await supabase
         .from('profiles')
@@ -56,22 +52,20 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/', request.url))
       }
     } catch (err) {
-      console.error("Middleware profile check failed:", err)
-      // Fallback: If we can't verify admin status, redirect to safety (home)
       return NextResponse.redirect(new URL('/', request.url))
     }
   }
 
-  // Protect User Dashboard
-  if (request.nextUrl.pathname === '/dashboard') {
-    if (!user) {
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
+  // Dashboard/Auth logic (session-only, no DB check)
+  if (!user && (request.nextUrl.pathname === '/dashboard' || request.nextUrl.pathname.startsWith('/account'))) {
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Prevent logged in users from visiting auth pages
-  if (user && ['/login', '/register', '/forgot-password'].includes(request.nextUrl.pathname)) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+  if (user && ['/login', '/register', '/forgot-password', '/'].includes(request.nextUrl.pathname)) {
+    // Only redirect if specifically landing on auth pages or root while logged in
+    if (request.nextUrl.pathname !== '/') {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
   }
 
   return response
