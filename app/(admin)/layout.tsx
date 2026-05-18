@@ -22,6 +22,7 @@ const NAV_ITEMS = [
   { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { name: "Products", href: "/admin/products", icon: Package },
   { name: "Customers", href: "/admin/customers", icon: Users },
+  { name: "Banners", href: "/admin/banners", icon: Bell },
   { name: "Content", href: "/admin/content", icon: FileText },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];

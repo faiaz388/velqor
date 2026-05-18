@@ -26,6 +26,14 @@ interface Category {
   image: string;
 }
 
+interface Banner {
+  id: string;
+  title: string;
+  subtitle: string;
+  image_url: string;
+  link_url: string;
+}
+
 const HERO_SLIDES = [
   {
     id: 1,
@@ -51,21 +59,25 @@ const fetchHomeData = async () => {
       .eq("status", "active")
       .limit(4);
 
-    if (productsError) {
-      console.error("Error fetching products:", productsError);
-    }
+    if (productsError) console.error("Error fetching products:", productsError);
 
     const { data: categories, error: catError } = await supabase
       .from("categories")
       .select("*")
       .limit(3);
 
-    if (catError) {
-      console.error("Error fetching categories:", catError);
-    }
+    if (catError) console.error("Error fetching categories:", catError);
+
+    const { data: banners, error: bannerError } = await supabase
+      .from("banners")
+      .select("*")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
+
+    if (bannerError) console.error("Error fetching banners:", bannerError);
 
     return {
-      products: products?.map((p: { id: string, slug: string, title: string, price: number, sale_price: number | null, product_images: { image_url: string }[] }) => ({
+      products: products?.map((p: any) => ({
         id: p.id,
         slug: p.slug,
         title: p.title,
@@ -74,22 +86,27 @@ const fetchHomeData = async () => {
         imageTop: p.product_images?.[0]?.image_url || "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070&auto=format&fit=crop",
         badge: p.sale_price ? "SALE" : undefined
       })) || [],
-      categories: (categories as Category[]) || []
+      categories: (categories as Category[]) || [],
+      banners: (banners as Banner[]) || []
     };
   } catch (error) {
     console.error("Catastrophic failure in fetchHomeData:", error);
-    return { products: [], categories: [] };
+    return { products: [], categories: [], banners: [] };
   }
 };
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = React.useState(0);
-  const [data, setData] = React.useState<{ products: Product[], categories: Category[] }>({ products: [], categories: [] });
+  const [data, setData] = React.useState<{ products: Product[], categories: Category[], banners: Banner[] }>({ products: [], categories: [], banners: [] });
   const [loading, setLoading] = React.useState(true);
+
+  const activeSlides = data.banners.length > 0 
+    ? data.banners.map(b => ({ id: b.id, image: b.image_url, heading: b.title, subheading: b.subtitle, link: b.link_url }))
+    : HERO_SLIDES.map(s => ({ ...s, link: "/products" }));
 
   React.useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+      setCurrentSlide((prev) => (prev + 1) % activeSlides.length);
     }, 5000);
     
     fetchHomeData().then(res => {
@@ -98,7 +115,7 @@ export default function Home() {
     });
 
     return () => clearInterval(timer);
-  }, []);
+  }, [activeSlides.length]);
 
   if (loading) return null;
 
@@ -110,7 +127,7 @@ export default function Home() {
       <section className="relative h-[80vh] md:h-screen w-full bg-background-secondary overflow-hidden -mt-[80px]">
         <AnimatePresence mode="wait">
           <motion.div
-            key={currentSlide}
+            key={activeSlides[currentSlide].id}
             initial={{ opacity: 0, scale: 1.05 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
@@ -118,7 +135,7 @@ export default function Home() {
             className="absolute inset-0"
           >
             <Image
-              src={HERO_SLIDES[currentSlide].image}
+              src={activeSlides[currentSlide].image}
               alt="Hero"
               fill
               className="object-cover"
@@ -136,7 +153,7 @@ export default function Home() {
                     visible: { transition: { staggerChildren: 0.1 } }
                   }}
                 >
-                  {HERO_SLIDES[currentSlide].heading.split(" ").map((word, i) => (
+                  {activeSlides[currentSlide].heading.split(" ").map((word, i) => (
                     <motion.span
                       key={i}
                       className="inline-block mr-[0.25em]"
@@ -156,16 +173,18 @@ export default function Home() {
                   transition={{ delay: 0.5, duration: 0.6 }}
                   className="text-white/90 text-lg md:text-xl mb-10 max-w-xl"
                 >
-                  {HERO_SLIDES[currentSlide].subheading}
+                  {activeSlides[currentSlide].subheading}
                 </motion.p>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.7, duration: 0.6 }}
                 >
-                  <Button variant="primary" size="lg" className="w-[200px]">
-                    Shop the Collection
-                  </Button>
+                  <Link href={activeSlides[currentSlide].link || "/products"}>
+                    <Button variant="primary" size="lg" className="w-[200px]">
+                      Shop the Collection
+                    </Button>
+                  </Link>
                 </motion.div>
               </div>
             </div>
@@ -174,7 +193,7 @@ export default function Home() {
 
         {/* Slide Indicators */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-10">
-          {HERO_SLIDES.map((_, i) => (
+          {activeSlides.map((_, i) => (
             <button
               key={i}
               onClick={() => setCurrentSlide(i)}

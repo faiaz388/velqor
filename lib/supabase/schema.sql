@@ -178,3 +178,20 @@ CREATE POLICY "Users can view messages for their tickets" ON public.ticket_messa
 CREATE POLICY "Users can insert messages for their tickets" ON public.ticket_messages FOR INSERT WITH CHECK (EXISTS (SELECT 1 FROM public.support_tickets WHERE id = ticket_id AND user_id = auth.uid()));
 CREATE POLICY "Admins can view and insert any ticket message" ON public.ticket_messages USING (public.is_admin());
 
+-- 10. Banners Table (Posted via Links)
+CREATE TABLE IF NOT EXISTS public.banners (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title TEXT NOT NULL,
+  subtitle TEXT NOT NULL,
+  image_url TEXT NOT NULL,
+  link_url TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.banners ENABLE ROW LEVEL SECURITY;
+
+-- Banners RLS
+CREATE POLICY "Active banners are viewable by everyone" ON public.banners FOR SELECT USING (is_active = true);
+CREATE POLICY "Admins can manage all banners" ON public.banners USING (public.is_admin());
+
