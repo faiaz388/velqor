@@ -11,6 +11,7 @@ import { useCart } from "@/lib/hooks/use-cart";
 import { formatCurrency, cn } from "@/lib/utils";
 import { PAYMENT_METHODS } from "@/lib/payment-config";
 import { useToast } from "@/components/ui/toast";
+import { createClient } from "@/lib/supabase/client";
 
 type CheckoutStep = "contact" | "shipping" | "payment";
 type MfsMethod = "bkash" | "nagad" | "rocket" | "cod";
@@ -23,13 +24,59 @@ export default function CheckoutPage() {
   const [transactionId, setTransactionId] = React.useState("");
   const [senderNumber, setSenderNumber] = React.useState("");
   const [isProcessing, setIsProcessing] = React.useState(false);
+  const [paymentNumbers, setPaymentNumbers] = React.useState<Record<string, string>>({
+    bkash: process.env.NEXT_PUBLIC_BKASH_NUMBER || "017XX-XXXXXX",
+    nagad: process.env.NEXT_PUBLIC_NAGAD_NUMBER || "018XX-XXXXXX",
+    rocket: process.env.NEXT_PUBLIC_ROCKET_NUMBER || "019XX-XXXXXX"
+  });
+  const supabase = createClient();
+
+  // Form State
+  const [email, setEmail] = React.useState("");
+  const [phone, setPhone] = React.useState("");
+  const [firstName, setFirstName] = React.useState("");
+  const [lastName, setLastName] = React.useState("");
+  const [address, setAddress] = React.useState("");
+  const [city, setCity] = React.useState("");
+  const [postalCode, setPostalCode] = React.useState("");
 
   const tax = subtotal * 0; 
   const shipping = subtotal > 150 ? 0 : 15;
   const total = subtotal + tax + shipping;
 
+  React.useEffect(() => {
+    async function fetchPaymentSettings() {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('data')
+        .eq('id', 'payment')
+        .single();
+      
+      if (data && !error) {
+        setPaymentNumbers(data.data);
+      }
+    }
+    fetchPaymentSettings();
+  }, [supabase]);
+
   const handleNext = (nextStep: CheckoutStep) => {
+    // Validation
+    if (step === "contact") {
+      if (!email || !phone) {
+        addToast({ title: "Please fill in contact details", type: "error" });
+        return;
+      }
+    }
+
+    if (step === "shipping") {
+      if (!firstName || !lastName || !address || !city || !postalCode) {
+        addToast({ title: "Please fill in all shipping details", type: "error" });
+        return;
+      }
+    }
+
     setStep(nextStep);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handlePlaceOrder = async () => {
@@ -89,8 +136,20 @@ export default function CheckoutPage() {
                     Already have an account? <Link href="/login" className="text-foreground underline">Log in</Link>
                   </span>
                 </div>
-                <Input label="Email address" type="email" placeholder="example@mail.com" />
-                <Input label="Phone number" type="tel" placeholder="01XXX-XXXXXX" />
+                <Input 
+                  label="Email address" 
+                  type="email" 
+                  placeholder="example@mail.com" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                <Input 
+                  label="Phone number" 
+                  type="tel" 
+                  placeholder="01XXX-XXXXXX" 
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
                 
                 <div className="mt-4">
                   <Button variant="primary" size="lg" className="w-full" onClick={() => handleNext("shipping")}>
@@ -110,14 +169,40 @@ export default function CheckoutPage() {
               >
                 <h2 className="text-2xl font-serif">Shipping Address</h2>
                 <div className="grid grid-cols-2 gap-4">
-                  <Input label="First name" placeholder="Atiq" />
-                  <Input label="Last name" placeholder="Rahman" />
+                  <Input 
+                    label="First name" 
+                    placeholder="Atiq" 
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
+                  <Input 
+                    label="Last name" 
+                    placeholder="Rahman" 
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
                 </div>
-                <Input label="Address" placeholder="House 12, Road 4, Sector 7" />
+                <Input 
+                  label="Address" 
+                  placeholder="House 12, Road 4, Sector 7" 
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                />
                 <Input label="Apartment, suite, etc. (optional)" />
                 <div className="grid grid-cols-3 gap-4">
-                  <Input label="City" className="col-span-2" placeholder="Dhaka" />
-                  <Input label="Postal code" placeholder="1230" />
+                  <Input 
+                    label="City" 
+                    className="col-span-2" 
+                    placeholder="Dhaka" 
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                  />
+                  <Input 
+                    label="Postal code" 
+                    placeholder="1230" 
+                    value={postalCode}
+                    onChange={(e) => setPostalCode(e.target.value)}
+                  />
                 </div>
                 
                 <div className="mt-4 flex gap-4">
@@ -192,8 +277,8 @@ export default function CheckoutPage() {
                           <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded uppercase">{PAYMENT_METHODS[selectedMethod].type}</span>
                         </div>
                         <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-black/5">
-                          <span className="text-lg font-mono font-bold tracking-wider">{PAYMENT_METHODS[selectedMethod].number}</span>
-                          <button onClick={() => copyToClipboard(PAYMENT_METHODS[selectedMethod].number!)} className="p-2 hover:bg-black/5 rounded-md transition-colors">
+                          <span className="text-lg font-mono font-bold tracking-wider">{paymentNumbers[selectedMethod] || PAYMENT_METHODS[selectedMethod].number}</span>
+                          <button onClick={() => copyToClipboard(paymentNumbers[selectedMethod] || PAYMENT_METHODS[selectedMethod].number || "")} className="p-2 hover:bg-black/5 rounded-md transition-colors">
                             <Copy className="w-4 h-4 text-black/40" />
                           </button>
                         </div>
