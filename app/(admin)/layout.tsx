@@ -13,8 +13,7 @@ import {
   Search,
   LogOut,
   AlignLeft,
-  FileText,
-  X
+  FileText
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
