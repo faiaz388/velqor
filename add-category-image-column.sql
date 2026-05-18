@@ -1,5 +1,6 @@
--- Add image_url to categories table
+-- Add image_url and description to categories table
 ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS image_url TEXT;
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS description TEXT;
 
 -- Update RLS policies just in case
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
