@@ -31,6 +31,8 @@ export default function CheckoutPage() {
   });
   const supabase = createClient();
 
+  const [deliveryLocation, setDeliveryLocation] = React.useState<"inside" | "outside">("inside");
+
   // Form State
   const [email, setEmail] = React.useState("");
   const [phone, setPhone] = React.useState("");
@@ -41,7 +43,7 @@ export default function CheckoutPage() {
   const [postalCode, setPostalCode] = React.useState("");
 
   const tax = subtotal * 0; 
-  const shipping = subtotal > 150 ? 0 : 15;
+  const shipping = deliveryLocation === "inside" ? 80 : 130;
   const total = subtotal + tax + shipping;
 
   React.useEffect(() => {
@@ -204,6 +206,52 @@ export default function CheckoutPage() {
                     onChange={(e) => setPostalCode(e.target.value)}
                   />
                 </div>
+
+                <div className="space-y-3 mt-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-black/40 ml-1">Delivery Region</label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div 
+                      onClick={() => setDeliveryLocation("inside")}
+                      className={cn(
+                        "p-4 border rounded-xl cursor-pointer transition-all flex items-center justify-between",
+                        deliveryLocation === "inside" 
+                          ? "border-blue-600 bg-blue-50/10 ring-1 ring-blue-600 shadow-sm" 
+                          : "border-foreground/5 hover:border-foreground/20"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "w-4 h-4 rounded-full border flex items-center justify-center",
+                          deliveryLocation === "inside" ? "border-blue-600" : "border-foreground/20"
+                        )}>
+                          {deliveryLocation === "inside" && <div className="w-2 h-2 rounded-full bg-blue-600" />}
+                        </div>
+                        <span className="text-sm font-medium">Inside Dhaka</span>
+                      </div>
+                      <span className="text-xs font-bold text-foreground">৳80</span>
+                    </div>
+                    <div 
+                      onClick={() => setDeliveryLocation("outside")}
+                      className={cn(
+                        "p-4 border rounded-xl cursor-pointer transition-all flex items-center justify-between",
+                        deliveryLocation === "outside" 
+                          ? "border-blue-600 bg-blue-50/10 ring-1 ring-blue-600 shadow-sm" 
+                          : "border-foreground/5 hover:border-foreground/20"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "w-4 h-4 rounded-full border flex items-center justify-center",
+                          deliveryLocation === "outside" ? "border-blue-600" : "border-foreground/20"
+                        )}>
+                          {deliveryLocation === "outside" && <div className="w-2 h-2 rounded-full bg-blue-600" />}
+                        </div>
+                        <span className="text-sm font-medium">Outside Dhaka</span>
+                      </div>
+                      <span className="text-xs font-bold text-foreground">৳130</span>
+                    </div>
+                  </div>
+                </div>
                 
                 <div className="mt-4 flex gap-4">
                   <Button variant="outline" size="lg" className="w-1/3 border-none" onClick={() => handleNext("contact")}>
@@ -350,7 +398,7 @@ export default function CheckoutPage() {
             </div>
             <div className="flex justify-between items-center text-sm text-foreground-secondary">
               <span>Shipping</span>
-              <span className={shipping === 0 ? "text-green-600 font-medium" : ""}>{shipping === 0 ? "Free" : formatCurrency(shipping)}</span>
+              <span>{formatCurrency(shipping)}</span>
             </div>
           </div>
 
