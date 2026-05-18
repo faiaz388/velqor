@@ -14,6 +14,8 @@ interface Banner {
   subtitle: string;
   image_url: string;
   link_url: string;
+  button_text: string;
+  badge_text: string;
   is_active: boolean;
   created_at: string;
 }
@@ -27,6 +29,8 @@ export default function AdminBannersPage() {
     subtitle: "",
     image_url: "",
     link_url: "",
+    button_text: "Shop Now",
+    badge_text: "",
   });
   const supabase = createClient();
 
@@ -52,7 +56,7 @@ export default function AdminBannersPage() {
     ]);
 
     if (!error) {
-      setForms({ title: "", subtitle: "", image_url: "", link_url: "" });
+      setForms({ title: "", subtitle: "", image_url: "", link_url: "", button_text: "Shop Now", badge_text: "" });
       setShowAddForm(false);
       fetchBanners();
     }
@@ -124,15 +128,23 @@ export default function AdminBannersPage() {
                 className="bg-transparent" 
               />
               <Input 
-                id="banner-link"
-                label="Destination Link" 
-                value={forms.link_url} 
-                onChange={e => setForms({...forms, link_url: e.target.value})} 
-                placeholder="Ex: /products?category=ID" 
+                id="banner-button"
+                label="Button Text" 
+                value={forms.button_text} 
+                onChange={e => setForms({...forms, button_text: e.target.value})} 
+                placeholder="Ex: Shop the Collection" 
+                className="bg-transparent" 
+              />
+              <Input 
+                id="banner-badge"
+                label="Badge (Optional)" 
+                value={forms.badge_text} 
+                onChange={e => setForms({...forms, badge_text: e.target.value})} 
+                placeholder="Ex: NEW ARRIVAL" 
                 className="bg-transparent" 
               />
               <div className="md:col-span-2 flex justify-end">
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white rounded-2xl px-12 h-14 font-bold shadow-lg shadow-blue-500/20">POST BANNER</Button>
+                <Button type="submit" className="bg-black hover:bg-neutral-800 text-white rounded-2xl px-12 h-14 font-bold shadow-xl">POST BANNER</Button>
               </div>
             </form>
           </motion.div>
@@ -148,9 +160,17 @@ export default function AdminBannersPage() {
                <div className="relative aspect-[21/9] overflow-hidden bg-neutral-100">
                   <Image src={banner.image_url} alt={banner.title} fill unoptimized className="object-cover transition-transform duration-700 group-hover:scale-105" />
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-all" />
-                  <div className="absolute bottom-4 left-6 text-white drop-shadow-lg">
-                    <p className="text-[8px] font-black uppercase tracking-widest mb-1 opacity-70">{banner.subtitle}</p>
-                    <h3 className="text-xl font-serif">{banner.title}</h3>
+                  <div className="absolute inset-0 p-8 flex flex-col justify-end text-white drop-shadow-xl">
+                    {banner.badge_text && (
+                       <span className="w-fit text-[8px] font-black uppercase tracking-[0.2em] bg-white/20 backdrop-blur-md px-3 py-1 rounded-full mb-2">
+                         {banner.badge_text}
+                       </span>
+                    )}
+                    <h3 className="text-2xl font-serif leading-tight">{banner.title}</h3>
+                    <p className="text-[10px] font-medium opacity-80 mt-1">{banner.subtitle}</p>
+                    <div className="mt-4 w-9 h-9 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                       <Plus className="w-4 h-4" />
+                    </div>
                   </div>
                </div>
                <div className="p-6 flex justify-between items-center bg-white">

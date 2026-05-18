@@ -185,6 +185,8 @@ CREATE TABLE IF NOT EXISTS public.banners (
   subtitle TEXT NOT NULL,
   image_url TEXT NOT NULL,
   link_url TEXT,
+  button_text TEXT DEFAULT 'Shop Now',
+  badge_text TEXT,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );

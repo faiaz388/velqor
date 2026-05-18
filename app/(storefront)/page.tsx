@@ -32,6 +32,8 @@ interface Banner {
   subtitle: string;
   image_url: string;
   link_url: string;
+  button_text: string;
+  badge_text: string;
 }
 
 const HERO_SLIDES = [
@@ -108,8 +110,21 @@ export default function Home() {
   const [loading, setLoading] = React.useState(true);
 
   const activeSlides = data.banners.length > 0 
-    ? data.banners.map(b => ({ id: b.id, image: b.image_url, heading: b.title, subheading: b.subtitle, link: b.link_url }))
-    : HERO_SLIDES.map(s => ({ ...s, link: "/products" }));
+    ? data.banners.map(b => ({ 
+        id: b.id, 
+        image: b.image_url, 
+        heading: b.title, 
+        subheading: b.subtitle, 
+        link: b.link_url,
+        buttonText: b.button_text || "Shop Now",
+        badge: b.badge_text
+      }))
+    : HERO_SLIDES.map(s => ({ 
+        ...s, 
+        link: "/products",
+        buttonText: "Shop the Collection",
+        badge: undefined
+      }));
 
   React.useEffect(() => {
     const timer = setInterval(() => {
@@ -134,11 +149,11 @@ export default function Home() {
       <section className="relative h-[80vh] md:h-screen w-full bg-background-secondary overflow-hidden -mt-[80px]">
         <AnimatePresence mode="wait">
           <motion.div
-            key={activeSlides[currentSlide].id}
-            initial={{ opacity: 0, scale: 1.05 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.5, ease: "easeInOut" }}
+            key={`hero-${currentSlide}`}
+            initial={{ scale: 1.1, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 1.1, opacity: 0 }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
             className="absolute inset-0"
           >
             <Image
@@ -148,51 +163,48 @@ export default function Home() {
               className="object-cover"
               priority
             />
-            <div className="absolute inset-0 bg-black/30" />
+            <div className="absolute inset-0 bg-black/40" />
             
             <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-6">
-              <div className="max-w-3xl flex flex-col items-center">
-                <motion.h1 
-                  className="text-4xl md:text-7xl font-serif text-white mb-6 leading-tight"
-                  initial="hidden"
-                  animate="visible"
-                  variants={{
-                    visible: { transition: { staggerChildren: 0.1 } }
-                  }}
-                >
-                  {activeSlides[currentSlide].heading.split(" ").map((word, i) => (
-                    <motion.span
-                      key={i}
-                      className="inline-block mr-[0.25em]"
-                      variants={{
-                        hidden: { opacity: 0, y: 20 },
-                        visible: { opacity: 1, y: 0 }
-                      }}
-                      transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-                    >
-                      {word}
-                    </motion.span>
-                  ))}
-                </motion.h1>
-                <motion.p
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5, duration: 0.6 }}
-                  className="text-white/90 text-lg md:text-xl mb-10 max-w-xl"
-                >
-                  {activeSlides[currentSlide].subheading}
-                </motion.p>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7, duration: 0.6 }}
-                >
-                  <Link href={activeSlides[currentSlide].link || "/products"}>
-                    <Button variant="primary" size="lg" className="w-[200px]">
-                      Shop the Collection
-                    </Button>
-                  </Link>
-                </motion.div>
+              <div className="max-w-4xl flex flex-col items-center">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={`content-${currentSlide}`}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -30 }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                  >
+                    {activeSlides[currentSlide].badge && (
+                      <motion.span 
+                        initial={{ opacity: 0, letterSpacing: "0.2em" }}
+                        animate={{ opacity: 1, letterSpacing: "0.4em" }}
+                        className="inline-block text-[10px] md:text-xs font-black text-white uppercase mb-6 bg-white/10 backdrop-blur-md px-6 py-2 rounded-full border border-white/20"
+                      >
+                        {activeSlides[currentSlide].badge}
+                      </motion.span>
+                    )}
+                    
+                    <h1 className="text-5xl md:text-8xl font-serif text-white mb-8 leading-[0.9] tracking-tight">
+                      {activeSlides[currentSlide].heading}
+                    </h1>
+                    
+                    <p className="text-white/80 text-lg md:text-2xl mb-12 max-w-2xl mx-auto font-light tracking-wide leading-relaxed">
+                      {activeSlides[currentSlide].subheading}
+                    </p>
+                    
+                    <div className="flex flex-col sm:flex-row gap-5 items-center justify-center">
+                      <Link href={activeSlides[currentSlide].link || "/products"}>
+                        <Button className="bg-white text-black hover:bg-neutral-100 rounded-full px-12 h-16 text-sm font-bold tracking-widest uppercase shadow-2xl transition-all hover:scale-105 active:scale-95">
+                          {activeSlides[currentSlide].buttonText}
+                        </Button>
+                      </Link>
+                      <Button variant="outline" className="bg-white/5 border-white/20 text-white hover:bg-white/10 backdrop-blur-md rounded-full px-12 h-16 text-sm font-bold tracking-widest uppercase transition-all">
+                        View Details
+                      </Button>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
               </div>
             </div>
           </motion.div>
