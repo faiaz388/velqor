@@ -124,7 +124,7 @@ function ProductsContent() {
     });
 
     setFilteredProducts(result);
-  }, [selectedCategory, products, sortBy]);
+  }, [selectedCategory, products, sortBy, priceRange]);
 
   const MOCK_PRODUCTS = filteredProducts;
 
