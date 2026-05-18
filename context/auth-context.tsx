@@ -31,15 +31,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = React.useState(true);
   const supabase = React.useMemo(() => createClient(), []);
 
-  const fetchProfile = React.useCallback(async (userId: string) => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
+  const fetchProfile = React.useCallback(async (sessionUser: User) => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", sessionUser.id)
+        .single();
 
-    if (!error && data) {
-      setProfile(data);
+      if (error && error.code === 'PGRST116') {
+        const fallbackUsername = sessionUser.email ? sessionUser.email.split('@')[0] + Math.floor(Math.random()*10000) : 'user' + Math.floor(Math.random()*100000);
+        const { data: newProfile, error: insertError } = await supabase.from("profiles").insert({
+          id: sessionUser.id,
+          email: sessionUser.email,
+          name: sessionUser.user_metadata?.name || 'New User',
+          username: fallbackUsername,
+          role: 'user',
+          photo_url: sessionUser.user_metadata?.avatar_url || ''
+        }).select().single();
+        
+        if (newProfile) {
+          setProfile(newProfile);
+        } else {
+          console.error("Auto-repair failed:", insertError);
+        }
+      } else if (!error && data) {
+        setProfile(data);
+      } else {
+        console.error("Profile fetch error:", error);
+      }
+    } catch (err) {
+      console.error("Network or parsing error fetching profile:", err);
     }
   }, [supabase]);
 
@@ -48,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        fetchProfile(session.user);
       }
       setLoading(false);
     });
@@ -57,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        await fetchProfile(session.user.id);
+        await fetchProfile(session.user);
       } else {
         setProfile(null);
       }
@@ -75,7 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const refreshProfile = async () => {
-    if (user) await fetchProfile(user.id);
+    if (user) await fetchProfile(user);
   };
 
   return (
