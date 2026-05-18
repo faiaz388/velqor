@@ -254,9 +254,22 @@ function ProductsContent() {
                   onChange={(e) => setPriceRange(parseInt(e.target.value))}
                   className="w-full h-1.5 bg-foreground/10 rounded-full appearance-none cursor-pointer accent-accent"
                 />
-                <div className="flex justify-between items-center text-[10px] text-foreground-secondary mt-2 uppercase tracking-tighter">
-                  <span>৳0</span>
-                  <span>৳30,000+</span>
+                <div className="flex justify-between items-center text-[10px] text-foreground-secondary mt-2 uppercase tracking-tighter font-medium">
+                  <div className="flex items-center gap-0.5">
+                    <span>৳</span>
+                    <span>0</span>
+                  </div>
+                  <div className="flex items-center gap-0.5 bg-accent/5 px-2 py-0.5 rounded-md border border-accent/10">
+                    <span>৳</span>
+                    <input 
+                      type="number" 
+                      min="0"
+                      max="30000"
+                      value={priceRange}
+                      onChange={(e) => setPriceRange(Math.min(30000, Math.max(0, parseInt(e.target.value) || 0)))}
+                      className="bg-transparent border-none outline-none w-14 text-right p-0 font-bold text-accent"
+                    />
+                  </div>
                 </div>
                 <Button variant="primary" className="w-full mt-6 text-xs uppercase tracking-widest h-11 font-bold">
                   Apply Filters
