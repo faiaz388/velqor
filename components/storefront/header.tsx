@@ -30,7 +30,9 @@ export function Header() {
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       className={cn(
         "fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-6 md:px-16 transition-all duration-300",
-        isScrolled ? "h-[60px] bg-background/80 backdrop-blur-md border-b border-foreground/5" : "h-[80px] bg-transparent"
+        isScrolled 
+          ? "h-[60px] bg-background/80 backdrop-blur-xl border-b border-foreground/5 shadow-sm" 
+          : "h-[80px] bg-black/10 backdrop-blur-md border-b border-white/5"
       )}
     >
       <div className="flex items-center gap-4 flex-1">
