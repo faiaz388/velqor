@@ -417,11 +417,22 @@ export default function EditProductPage() {
             </div>
 
             <div className="bg-white rounded-3xl border border-black/5 p-8 shadow-sm space-y-8">
-                <div className="space-y-4">
-                   <label className="text-[10px] font-black uppercase tracking-widest text-black/40 block ml-1">Category</label>
-                   <select {...register("category_id")} className="w-full px-5 py-4 bg-[#F5F5F0] rounded-2xl outline-none font-bold text-sm appearance-none cursor-pointer border-2 border-transparent focus:border-blue-500/10">
-                        {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-                   </select>
+                <div className="grid grid-cols-2 gap-2">
+                    {categories.map(cat => (
+                        <button 
+                            key={cat.id} 
+                            type="button" 
+                            onClick={() => setValue("category_id", cat.id, { shouldValidate: true })}
+                            className={cn(
+                                "px-4 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all text-center border-2",
+                                watch("category_id") === cat.id 
+                                    ? "bg-black text-white border-black shadow-lg" 
+                                    : "bg-[#F5F5F0] text-black/40 border-transparent hover:bg-black/5"
+                            )}
+                        >
+                            {cat.name}
+                        </button>
+                    ))}
                 </div>
 
                 <div className="space-y-4">

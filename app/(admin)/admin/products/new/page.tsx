@@ -415,14 +415,22 @@ export default function NewProductPage() {
                             <Plus className="w-3 h-3" /> New Category
                         </button>
                    </div>
-                   <div className="relative group">
-                        <select {...register("category_id")} className="w-full px-5 py-4 bg-[#F5F5F0] rounded-2xl outline-none font-bold text-sm appearance-none cursor-pointer border-2 border-transparent focus:border-blue-500/10">
-                            <option value="">Choose Category</option>
-                            {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-                        </select>
-                        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-black/20 group-hover:text-black/40 transition-colors">
-                            <FolderPlus className="w-4 h-4" />
-                        </div>
+                   <div className="grid grid-cols-2 gap-2">
+                        {categories.map(cat => (
+                            <button 
+                                key={cat.id} 
+                                type="button" 
+                                onClick={() => setValue("category_id", cat.id, { shouldValidate: true })}
+                                className={cn(
+                                    "px-4 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all text-center border-2",
+                                    watch("category_id") === cat.id 
+                                        ? "bg-black text-white border-black shadow-lg" 
+                                        : "bg-[#F5F5F0] text-black/40 border-transparent hover:bg-black/5"
+                                )}
+                            >
+                                {cat.name}
+                            </button>
+                        ))}
                    </div>
                    {errors.category_id && <p className="text-[10px] text-red-500 font-bold uppercase ml-1">{errors.category_id.message as string}</p>}
                 </div>

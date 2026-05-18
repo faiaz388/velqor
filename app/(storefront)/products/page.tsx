@@ -8,6 +8,7 @@ import { Filter, ChevronDown, X, SlidersHorizontal } from "lucide-react";
 import { ProductCard } from "@/components/storefront/product-card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 
 interface Category {
@@ -29,7 +30,9 @@ function ProductsContent() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [showFilters, setShowFilters] = React.useState(false);
   const [products, setProducts] = React.useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = React.useState<Product[]>([]);
   const [categories, setCategories] = React.useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
   
   React.useEffect(() => {
     const fetchData = async () => {
@@ -50,15 +53,18 @@ function ProductsContent() {
 
         if (cError) console.error("Error fetching categories:", cError);
 
-        setProducts(productsData?.map(p => ({
+        const productsMapped = productsData?.map(p => ({
           id: p.id,
           slug: p.slug,
           title: p.title,
           price: p.price,
           salePrice: p.sale_price,
+          categoryId: p.category_id,
           imageTop: p.product_images?.[0]?.image_url || "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070&auto=format&fit=crop",
-        })) || []);
-        
+        })) || [];
+
+        setProducts(productsMapped);
+        setFilteredProducts(productsMapped);
         setCategories(categoriesData || []);
       } catch (error) {
         console.error("Catastrophic error in products fetchData:", error);
@@ -70,7 +76,15 @@ function ProductsContent() {
     fetchData();
   }, [searchParams]);
 
-  const MOCK_PRODUCTS = products;
+  React.useEffect(() => {
+    if (selectedCategory) {
+      setFilteredProducts(products.filter(p => (p as any).categoryId === selectedCategory));
+    } else {
+      setFilteredProducts(products);
+    }
+  }, [selectedCategory, products]);
+
+  const MOCK_PRODUCTS = filteredProducts;
 
   return (
     <div className="max-w-1440 mx-auto px-6 md:px-16 py-12 w-full flex flex-col min-h-screen">
@@ -107,11 +121,34 @@ function ProductsContent() {
             <div className="flex flex-col gap-3">
               <span className="font-medium text-sm">Category</span>
               <div className="flex flex-col gap-2">
+                <div 
+                  className="flex items-center gap-3 cursor-pointer group"
+                  onClick={() => setSelectedCategory(null)}
+                >
+                  <div className={cn(
+                    "w-4 h-4 rounded-full border transition-all",
+                    !selectedCategory ? "bg-accent border-accent shadow-[0_0_10px_rgba(37,99,235,0.4)]" : "border-foreground/20 group-hover:border-accent"
+                  )} />
+                  <span className={cn(
+                    "text-sm transition-colors",
+                    !selectedCategory ? "text-foreground font-semibold" : "text-foreground-secondary group-hover:text-foreground"
+                  )}>All Collection</span>
+                </div>
                 {categories.map((cat) => (
-                  <label key={cat.id} className="flex items-center gap-3 cursor-pointer group">
-                    <div className="w-4 h-4 rounded border border-foreground/20 group-hover:border-accent transition-colors" />
-                    <span className="text-sm text-foreground-secondary group-hover:text-foreground">{cat.name}</span>
-                  </label>
+                  <div 
+                    key={cat.id} 
+                    className="flex items-center gap-3 cursor-pointer group"
+                    onClick={() => setSelectedCategory(cat.id === selectedCategory ? null : cat.id)}
+                  >
+                    <div className={cn(
+                      "w-4 h-4 rounded-full border transition-all",
+                      selectedCategory === cat.id ? "bg-accent border-accent shadow-[0_0_10px_rgba(37,99,235,0.4)]" : "border-foreground/20 group-hover:border-accent"
+                    )} />
+                    <span className={cn(
+                      "text-sm transition-colors",
+                      selectedCategory === cat.id ? "text-foreground font-semibold" : "text-foreground-secondary group-hover:text-foreground"
+                    )}>{cat.name}</span>
+                  </div>
                 ))}
               </div>
             </div>
@@ -184,10 +221,12 @@ function ProductsContent() {
           <div className="flex gap-2 flex-wrap mb-6">
             <span className="text-sm text-foreground-secondary py-1 hidden md:block">12 Products</span>
             {/* Active Filters */}
-            <div className="flex gap-2 bg-background-secondary px-3 py-1 rounded-full items-center">
-              <span className="text-xs">Category: T-Shirts</span>
-              <button><X className="w-3 h-3 hover:text-destructive transition-colors" /></button>
-            </div>
+            {selectedCategory && (
+              <div className="flex gap-2 bg-background-secondary px-3 py-1 rounded-full items-center">
+                <span className="text-xs">Category: {categories.find(c => c.id === selectedCategory)?.name}</span>
+                <button onClick={() => setSelectedCategory(null)}><X className="w-3 h-3 hover:text-destructive transition-colors" /></button>
+              </div>
+            )}
           </div>
 
           {isLoading ? (
