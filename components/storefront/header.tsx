@@ -63,16 +63,20 @@ export function Header() {
         
         <Link 
           href={user ? "/dashboard" : "/login"} 
-          className="hidden md:flex items-center gap-2 text-foreground hover:text-accent transition-colors"
+          className="flex items-center gap-2 text-foreground hover:text-accent transition-colors group"
         >
-          {profile?.photo_url ? (
-            <div className="w-6 h-6 rounded-full overflow-hidden border border-foreground/10 bg-white/5 relative">
+          <div className="w-8 h-8 rounded-full overflow-hidden border border-foreground/10 bg-white/5 relative flex items-center justify-center transition-all group-hover:border-accent/40">
+            {profile?.photo_url ? (
               <Image src={profile.photo_url} alt="Profile" fill className="object-cover" />
-            </div>
-          ) : (
-            <User className="w-5 h-5" />
+            ) : (
+              <User className="w-4 h-4" />
+            )}
+          </div>
+          {user && (
+            <span className="hidden md:block text-xs font-semibold tracking-tight max-w-[80px] truncate">
+              {profile?.name?.split(' ')[0] || profile?.username}
+            </span>
           )}
-          {user && <span className="text-xs font-medium max-w-[80px] truncate">{profile?.name?.split(' ')[0] || profile?.username}</span>}
         </Link>
 
         <button 
