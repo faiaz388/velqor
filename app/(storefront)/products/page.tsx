@@ -24,7 +24,10 @@ interface Product {
   salePrice: number | null;
   imageTop: string;
   categoryId?: string;
+  createdAt: string;
 }
+
+type SortOption = "featured" | "low-to-high" | "high-to-low";
 
 function ProductsContent() {
   const searchParams = useSearchParams();
@@ -34,6 +37,8 @@ function ProductsContent() {
   const [filteredProducts, setFilteredProducts] = React.useState<Product[]>([]);
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
+  const [sortBy, setSortBy] = React.useState<SortOption>("featured");
+  const [isSortOpen, setIsSortOpen] = React.useState(false);
   
   React.useEffect(() => {
     const fetchData = async () => {
@@ -61,6 +66,7 @@ function ProductsContent() {
           price: p.price,
           salePrice: p.sale_price,
           categoryId: p.category_id,
+          createdAt: p.created_at,
           imageTop: p.product_images?.[0]?.image_url || "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070&auto=format&fit=crop",
         })) || [];
 
@@ -85,12 +91,33 @@ function ProductsContent() {
   }, [searchParams]);
 
   React.useEffect(() => {
+    let result = [...products];
+
+    // Category Filter
     if (selectedCategory) {
-      setFilteredProducts(products.filter(p => p.categoryId === selectedCategory));
-    } else {
-      setFilteredProducts(products);
+      result = result.filter(p => p.categoryId === selectedCategory);
     }
-  }, [selectedCategory, products]);
+
+    // Sort Logic
+    result.sort((a, b) => {
+      if (sortBy === "low-to-high") {
+        const priceA = a.salePrice || a.price;
+        const priceB = b.salePrice || b.price;
+        return priceA - priceB;
+      }
+      if (sortBy === "high-to-low") {
+        const priceA = a.salePrice || a.price;
+        const priceB = b.salePrice || b.price;
+        return priceB - priceA;
+      }
+      if (sortBy === "featured") {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+      return 0;
+    });
+
+    setFilteredProducts(result);
+  }, [selectedCategory, products, sortBy]);
 
   const MOCK_PRODUCTS = filteredProducts;
 
@@ -102,7 +129,7 @@ function ProductsContent() {
           <h1 className="text-4xl md:text-5xl font-serif text-foreground mb-2">Ready to Wear</h1>
           <p className="text-foreground-secondary">Explore our latest arrivals</p>
         </div>
-        <div className="flex items-center gap-4 w-full md:w-auto">
+        <div className="flex items-center gap-4 w-full md:w-auto relative">
           <Button 
             variant="outline" 
             className="md:hidden flex-1 group" 
@@ -110,9 +137,52 @@ function ProductsContent() {
           >
             <SlidersHorizontal className="w-4 h-4 mr-2" /> Filters
           </Button>
-          <div className="flex items-center gap-2 relative bg-background-secondary rounded-md px-4 py-2 border border-foreground/5 shrink-0 flex-1 md:flex-none justify-between cursor-pointer">
-            <span className="text-sm font-medium">Sort by: Featured</span>
-            <ChevronDown className="w-4 h-4 text-foreground-secondary" />
+          
+          <div className="relative flex-1 md:flex-none">
+            <div 
+              className="flex items-center gap-2 bg-background-secondary rounded-md px-4 py-2 border border-foreground/5 shrink-0 justify-between cursor-pointer w-full md:w-[220px]"
+              onClick={() => setIsSortOpen(!isSortOpen)}
+            >
+              <span className="text-sm font-medium">
+                Sort by: {
+                  sortBy === "featured" ? "Featured" : 
+                  sortBy === "low-to-high" ? "Price: Low to High" : 
+                  "Price: High to Low"
+                }
+              </span>
+              <ChevronDown className={cn("w-4 h-4 text-foreground-secondary transition-transform", isSortOpen && "rotate-180")} />
+            </div>
+
+            <AnimatePresence>
+              {isSortOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="absolute top-full right-0 mt-2 w-full md:w-[220px] bg-background border border-foreground/5 rounded-xl shadow-2xl z-[60] overflow-hidden"
+                >
+                  {[
+                    { id: "featured", label: "Featured" },
+                    { id: "low-to-high", label: "Price: Low to High" },
+                    { id: "high-to-low", label: "Price: High to Low" }
+                  ].map((opt) => (
+                    <button
+                      key={opt.id}
+                      className={cn(
+                        "w-full px-4 py-3 text-sm text-left hover:bg-background-secondary transition-colors",
+                        sortBy === opt.id ? "text-accent font-semibold" : "text-foreground-secondary"
+                      )}
+                      onClick={() => {
+                        setSortBy(opt.id as SortOption);
+                        setIsSortOpen(false);
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>
@@ -227,7 +297,7 @@ function ProductsContent() {
         {/* Product Grid */}
         <div className="flex-1 flex flex-col">
           <div className="flex gap-2 flex-wrap mb-6">
-            <span className="text-sm text-foreground-secondary py-1 hidden md:block">12 Products</span>
+            <span className="text-sm text-foreground-secondary py-1 hidden md:block">{filteredProducts.length} Products</span>
             {/* Active Filters */}
             {selectedCategory && (
               <div className="flex gap-2 bg-background-secondary px-3 py-1 rounded-full items-center">
