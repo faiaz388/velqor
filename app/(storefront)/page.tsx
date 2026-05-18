@@ -200,9 +200,11 @@ export default function Home() {
                           {activeSlides[currentSlide].buttonText}
                         </Button>
                       </Link>
-                      <Button variant="outline" className="bg-white/5 border-white/20 text-white hover:bg-white/10 backdrop-blur-md rounded-full px-12 h-16 text-sm font-bold tracking-widest uppercase transition-all">
-                        View Details
-                      </Button>
+                      <Link href="/products">
+                        <Button variant="outline" className="bg-white/5 border-white/20 text-white hover:bg-white/10 backdrop-blur-md rounded-full px-12 h-16 text-sm font-bold tracking-widest uppercase transition-all">
+                          View Details
+                        </Button>
+                      </Link>
                     </div>
                   </motion.div>
                 </AnimatePresence>
@@ -315,7 +317,9 @@ export default function Home() {
           </motion.div>
           
           <div className="mt-16 text-center">
-            <Button variant="outline" size="lg">View Entire Collection</Button>
+            <Link href="/products">
+              <Button variant="outline" size="lg">View Entire Collection</Button>
+            </Link>
           </div>
         </section>
       )}

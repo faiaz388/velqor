@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion, useScroll, useMotionValueEvent } from "framer-motion";
+import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
 import { ShoppingCart, Search, Menu, User } from "lucide-react";
 import { useCart } from "@/lib/hooks/use-cart";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,7 @@ export function Header() {
   const [isScrolled, setIsScrolled] = React.useState(false);
   const { itemCount, setIsCartOpen } = useCart();
   const { user, profile } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     if (latest > 50) {
@@ -36,7 +37,10 @@ export function Header() {
       )}
     >
       <div className="flex items-center gap-4 flex-1">
-        <button className="md:hidden text-foreground hover:text-accent transition-colors">
+        <button 
+          className="md:hidden text-foreground hover:text-accent transition-colors p-2 -ml-2"
+          onClick={() => setIsMobileMenuOpen(true)}
+        >
           <Menu className="w-6 h-6" />
         </button>
         <nav className="hidden md:flex items-center gap-8">
@@ -88,6 +92,52 @@ export function Header() {
           )}
         </button>
       </div>
+
+      {/* Mobile Menu Drawer */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] md:hidden"
+            />
+            <motion.div 
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed top-0 left-0 bottom-0 w-[80%] max-w-sm bg-background z-[101] md:hidden p-8 flex flex-col"
+            >
+              <div className="flex justify-between items-center mb-12">
+                <span className="text-xl font-serif">VELQOR</span>
+                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 -mr-2">
+                  <Menu className="w-6 h-6 rotate-90" />
+                </button>
+              </div>
+
+              <nav className="flex flex-col gap-6">
+                <Link href="/products" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl font-serif hover:text-accent transition-colors">Shop All</Link>
+                <Link href="/categories" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl font-serif hover:text-accent transition-colors">Categories</Link>
+                <Link href="/about" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl font-serif hover:text-accent transition-colors">Our Story</Link>
+              </nav>
+
+              <div className="mt-auto pt-8 border-t border-foreground/5 flex flex-col gap-6">
+                <Link 
+                  href={user ? "/dashboard" : "/login"} 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-4 text-lg font-medium"
+                >
+                  <User className="w-6 h-6" />
+                  {user ? (profile?.name || profile?.username) : "Login / Sign up"}
+                </Link>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </motion.header>
   );
 }
