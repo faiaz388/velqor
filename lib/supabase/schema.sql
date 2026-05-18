@@ -1,6 +1,18 @@
 -- SQL Schema for VELQOR Authentication System
 -- Execute this in your Supabase SQL Editor
 
+-- 0. Admin Check Function (Bypasses RLS to prevent infinite recursion)
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
+  );
+$$;
+
 -- 1. Create Profiles Table
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
@@ -45,11 +57,7 @@ CREATE POLICY "Users can update own profile" ON public.profiles
 -- 4. Admin Policy
 DROP POLICY IF EXISTS "Admins have full access" ON public.profiles;
 CREATE POLICY "Admins have full access" ON public.profiles
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
-    )
-  );
+  USING (public.is_admin());
 
 -- 5. Trigger for New User Profile Creation with fail-safes
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -153,20 +161,20 @@ ALTER TABLE public.ticket_messages ENABLE ROW LEVEL SECURITY;
 -- Orders RLS
 CREATE POLICY "Users can view their own orders" ON public.orders FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can insert their own orders" ON public.orders FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Admins can manage all orders" ON public.orders USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
+CREATE POLICY "Admins can manage all orders" ON public.orders USING (public.is_admin());
 
 -- Order Items RLS
 CREATE POLICY "Users can view parts of their orders" ON public.order_items FOR SELECT USING (EXISTS (SELECT 1 FROM public.orders WHERE id = order_id AND user_id = auth.uid()));
 CREATE POLICY "Users can insert order items" ON public.order_items FOR INSERT WITH CHECK (EXISTS (SELECT 1 FROM public.orders WHERE id = order_id AND user_id = auth.uid()));
-CREATE POLICY "Admins can manage all order items" ON public.order_items USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
+CREATE POLICY "Admins can manage all order items" ON public.order_items USING (public.is_admin());
 
 -- Tickets RLS
 CREATE POLICY "Users can view their own tickets" ON public.support_tickets FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can insert their own tickets" ON public.support_tickets FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Admins can manage all tickets" ON public.support_tickets USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
+CREATE POLICY "Admins can manage all tickets" ON public.support_tickets USING (public.is_admin());
 
 -- Ticket Messages RLS
 CREATE POLICY "Users can view messages for their tickets" ON public.ticket_messages FOR SELECT USING (EXISTS (SELECT 1 FROM public.support_tickets WHERE id = ticket_id AND user_id = auth.uid()));
 CREATE POLICY "Users can insert messages for their tickets" ON public.ticket_messages FOR INSERT WITH CHECK (EXISTS (SELECT 1 FROM public.support_tickets WHERE id = ticket_id AND user_id = auth.uid()));
-CREATE POLICY "Admins can view and insert any ticket message" ON public.ticket_messages USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
+CREATE POLICY "Admins can view and insert any ticket message" ON public.ticket_messages USING (public.is_admin());
 
