@@ -37,6 +37,7 @@ function ProductsContent() {
   const [filteredProducts, setFilteredProducts] = React.useState<Product[]>([]);
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
+  const [priceRange, setPriceRange] = React.useState<number>(30000);
   const [sortBy, setSortBy] = React.useState<SortOption>("featured");
   const [isSortOpen, setIsSortOpen] = React.useState(false);
   
@@ -97,6 +98,12 @@ function ProductsContent() {
     if (selectedCategory) {
       result = result.filter(p => p.categoryId === selectedCategory);
     }
+
+    // Price Filter
+    result = result.filter(p => {
+      const currentPrice = p.salePrice || p.price;
+      return currentPrice <= priceRange;
+    });
 
     // Sort Logic
     result.sort((a, b) => {
@@ -245,13 +252,24 @@ function ProductsContent() {
             </div>
             
             <div className="flex flex-col gap-3">
-              <span className="font-medium text-sm">Price Range</span>
-              <div className="w-full h-1 bg-foreground/10 rounded-full my-2">
-                 <div className="w-2/3 h-full bg-accent rounded-full" />
+              <div className="flex justify-between items-center">
+                <span className="font-medium text-sm">Price Range</span>
+                <span className="text-xs font-bold text-accent">৳{priceRange.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between items-center text-xs text-foreground-secondary">
-                <span>$0</span>
-                <span>$500+</span>
+              <div className="relative pt-2 pb-6">
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="30000" 
+                  step="500"
+                  value={priceRange}
+                  onChange={(e) => setPriceRange(parseInt(e.target.value))}
+                  className="w-full h-1.5 bg-foreground/10 rounded-full appearance-none cursor-pointer accent-accent"
+                />
+                <div className="flex justify-between items-center text-[10px] text-foreground-secondary mt-2 uppercase tracking-tighter">
+                  <span>৳0</span>
+                  <span>৳30,000+</span>
+                </div>
               </div>
             </div>
           </div>
