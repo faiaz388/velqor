@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 
 interface Banner {
   id: string;
@@ -145,7 +146,7 @@ export default function AdminBannersPage() {
           banners.map((banner) => (
             <div key={banner.id} className="bg-white rounded-3xl border border-black/5 overflow-hidden group shadow-sm hover:shadow-xl transition-all duration-500">
                <div className="relative aspect-[21/9] overflow-hidden bg-neutral-100">
-                  <img src={banner.image_url} alt={banner.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                  <Image src={banner.image_url} alt={banner.title} fill unoptimized className="object-cover transition-transform duration-700 group-hover:scale-105" />
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-all" />
                   <div className="absolute bottom-4 left-6 text-white drop-shadow-lg">
                     <p className="text-[8px] font-black uppercase tracking-widest mb-1 opacity-70">{banner.subtitle}</p>

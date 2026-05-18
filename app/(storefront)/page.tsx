@@ -77,7 +77,14 @@ const fetchHomeData = async () => {
     if (bannerError) console.error("Error fetching banners:", bannerError);
 
     return {
-      products: products?.map((p: any) => ({
+      products: products?.map((p: { 
+        id: string, 
+        slug: string, 
+        title: string, 
+        price: number, 
+        sale_price: number | null, 
+        product_images: { image_url: string }[] 
+      }) => ({
         id: p.id,
         slug: p.slug,
         title: p.title,
