@@ -78,6 +78,13 @@ function ProductsContent() {
   }, [searchParams]);
 
   React.useEffect(() => {
+    const catId = searchParams.get("category");
+    if (catId) {
+      setSelectedCategory(catId);
+    }
+  }, [searchParams]);
+
+  React.useEffect(() => {
     if (selectedCategory) {
       setFilteredProducts(products.filter(p => p.categoryId === selectedCategory));
     } else {
