@@ -449,11 +449,11 @@ export default function EditProductPage() {
                 <div className="space-y-6">
                     <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-black/40 block ml-1">Standard Price</label>
-                        <div className="relative"><span className="absolute left-6 top-1/2 -translate-y-1/2 font-bold text-black/20">$</span><input {...register("price")} type="number" step="0.01" className="w-full pl-12 pr-6 py-5 bg-[#F5F5F0] rounded-2xl outline-none font-bold text-lg" /></div>
+                        <div className="relative"><span className="absolute left-6 top-1/2 -translate-y-1/2 font-bold text-black/20">৳</span><input {...register("price")} type="number" step="0.01" className="w-full pl-12 pr-6 py-5 bg-[#F5F5F0] rounded-2xl outline-none font-bold text-lg" /></div>
                     </div>
                     <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-black/40 block ml-1 text-blue-600">Sale Price (Optional)</label>
-                        <div className="relative"><span className="absolute left-6 top-1/2 -translate-y-1/2 font-bold text-black/20 text-blue-200">$</span><input {...register("sale_price")} type="number" step="0.01" className="w-full pl-12 pr-6 py-5 bg-blue-50/50 rounded-2xl outline-none font-bold text-lg border border-blue-500/10" /></div>
+                        <div className="relative"><span className="absolute left-6 top-1/2 -translate-y-1/2 font-bold text-black/20 text-blue-200">৳</span><input {...register("sale_price")} type="number" step="0.01" className="w-full pl-12 pr-6 py-5 bg-blue-50/50 rounded-2xl outline-none font-bold text-lg border border-blue-500/10" /></div>
                     </div>
                 </div>
             </div>

@@ -321,7 +321,7 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
               <p>{product.description}</p>
             </Accordion>
             <Accordion title="Shipping & Returns">
-              <p>Free standard shipping on orders over $15 order. Delivery within 3-5 business days.</p>
+              <p>Free standard shipping on orders over ৳1500 order. Delivery within 3-5 business days.</p>
             </Accordion>
           </div>
         </div>

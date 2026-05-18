@@ -452,7 +452,7 @@ export default function NewProductPage() {
                 <div className="space-y-8">
                     <div className="space-y-4">
                         <label className="text-[10px] font-black uppercase tracking-widest text-black/40 block ml-1">MSRP / Price</label>
-                        <div className="relative"><span className="absolute left-6 top-1/2 -translate-y-1/2 font-bold text-black/20">$</span><input {...register("price")} type="number" step="0.01" className="w-full pl-12 pr-6 py-5 bg-[#F5F5F0] rounded-2xl outline-none font-bold text-lg" /></div>
+                        <div className="relative"><span className="absolute left-6 top-1/2 -translate-y-1/2 font-bold text-black/20">৳</span><input {...register("price")} type="number" step="0.01" className="w-full pl-12 pr-6 py-5 bg-[#F5F5F0] rounded-2xl outline-none font-bold text-lg" /></div>
                         {errors.price && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.price.message}</p>}
                     </div>
                 </div>
