@@ -238,18 +238,6 @@ function ProductsContent() {
               </div>
             </div>
 
-            <div className="flex flex-col gap-3">
-              <span className="font-medium text-sm">Color</span>
-              <div className="flex flex-wrap gap-2">
-                {["#1A1A1A", "#F5F5F0", "#2563EB", "#8B4513", "#4B5320"].map((color) => (
-                  <button 
-                    key={color} 
-                    className="w-6 h-6 rounded-full border border-foreground/10 hover:scale-110 transition-transform" 
-                    style={{ backgroundColor: color }} 
-                  />
-                ))}
-              </div>
-            </div>
             
             <div className="flex flex-col gap-3">
               <div className="flex justify-between items-center">
@@ -270,6 +258,9 @@ function ProductsContent() {
                   <span>৳0</span>
                   <span>৳30,000+</span>
                 </div>
+                <Button variant="primary" className="w-full mt-6 text-xs uppercase tracking-widest h-11 font-bold">
+                  Apply Filters
+                </Button>
               </div>
             </div>
           </div>
