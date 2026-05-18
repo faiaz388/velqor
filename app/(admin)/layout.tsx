@@ -13,7 +13,8 @@ import {
   Search,
   LogOut,
   AlignLeft,
-  FileText
+  FileText,
+  ExternalLink
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -98,7 +99,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           })}
         </nav>
 
-        <div className="p-4 border-t border-[#1A1A1A]/5">
+        <div className="p-4 border-t border-[#1A1A1A]/5 flex flex-col gap-1">
+          <Link 
+            href="/" 
+            className="flex items-center gap-3 px-3 py-2.5 rounded-md w-full text-left text-[#1A1A1A]/70 hover:bg-[#1A1A1A]/5 hover:text-[#2563EB] transition-colors"
+          >
+            <ExternalLink className="w-5 h-5 shrink-0" />
+            {isSidebarOpen && <span className="font-medium text-sm">View Store</span>}
+          </Link>
           <button className="flex items-center gap-3 px-3 py-2.5 rounded-md w-full text-left text-[#1A1A1A]/70 hover:bg-[#1A1A1A]/5 hover:text-red-500 transition-colors">
             <LogOut className="w-5 h-5 shrink-0" />
             {isSidebarOpen && <span className="font-medium text-sm">Logout</span>}
