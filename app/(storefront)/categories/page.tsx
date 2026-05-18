@@ -103,7 +103,7 @@ export default function CategoriesPage() {
                </div>
                <div className="space-y-2">
                   <h3 className="text-xl font-serif">No categories found</h3>
-                  <p className="text-foreground-secondary">We haven't added any collections yet. Check back later.</p>
+                  <p className="text-foreground-secondary">We haven&apos;t added any collections yet. Check back later.</p>
                </div>
                <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>Refresh Page</Button>
             </div>
