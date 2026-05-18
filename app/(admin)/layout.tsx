@@ -13,8 +13,10 @@ import {
   Search,
   LogOut,
   AlignLeft,
-  FileText
+  FileText,
+  X
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -30,14 +32,41 @@ const NAV_ITEMS = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsSidebarOpen(true);
+      } else {
+        setIsSidebarOpen(false);
+      }
+    };
+    
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-[#F5F5F0] flex overflow-hidden">
+    <div className="min-h-screen bg-[#F5F5F0] flex overflow-hidden relative">
+      {/* Sidebar Overlay */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[45] md:hidden"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
       <aside className={cn(
-        "bg-white border-r border-[#1A1A1A]/5 flex flex-col transition-all duration-300 z-20 shrink-0 print:hidden",
-        isSidebarOpen ? "w-64" : "w-20"
+        "fixed md:relative top-0 bottom-0 left-0 bg-white border-r border-[#1A1A1A]/5 flex flex-col transition-all duration-300 z-[50] shrink-0 print:hidden h-full",
+        isSidebarOpen ? "w-64 translate-x-0" : "w-64 md:w-20 -translate-x-full md:translate-x-0"
       )}>
         <div className="h-16 flex items-center justify-between px-6 border-b border-[#1A1A1A]/5">
           {isSidebarOpen ? (
@@ -83,7 +112,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Top bar */}
         <header className="h-16 bg-white border-b border-[#1A1A1A]/5 flex items-center justify-between px-6 z-10 shrink-0 print:hidden">
           <div className="flex items-center gap-4 flex-1">
-            <button className="md:hidden text-[#1A1A1A]/50 hover:text-[#1A1A1A]" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+            <button 
+              className="text-[#1A1A1A]/50 hover:text-[#1A1A1A] p-2 -ml-2" 
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            >
               <AlignLeft className="w-5 h-5" />
             </button>
             <div className="relative w-full max-w-md hidden md:block">
