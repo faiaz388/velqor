@@ -12,13 +12,13 @@ import {
 } from "recharts";
 
 const MOCK_DATA = [
-  { name: "Mon", revenue: 4000, orders: 24 },
-  { name: "Tue", revenue: 3000, orders: 18 },
-  { name: "Wed", revenue: 5000, orders: 35 },
-  { name: "Thu", revenue: 2780, orders: 15 },
-  { name: "Fri", revenue: 6890, orders: 48 },
-  { name: "Sat", revenue: 8390, orders: 60 },
-  { name: "Sun", revenue: 7490, orders: 55 },
+  { name: "Mon", revenue: 0, orders: 0 },
+  { name: "Tue", revenue: 0, orders: 0 },
+  { name: "Wed", revenue: 0, orders: 0 },
+  { name: "Thu", revenue: 0, orders: 0 },
+  { name: "Fri", revenue: 0, orders: 0 },
+  { name: "Sat", revenue: 0, orders: 0 },
+  { name: "Sun", revenue: 0, orders: 0 },
 ];
 
 export default function RevenueChart() {
@@ -37,12 +37,12 @@ export default function RevenueChart() {
           axisLine={false} 
           tickLine={false} 
           tick={{fill: '#6B7280', fontSize: 12}}
-          tickFormatter={(value) => `$${value}`}
+          tickFormatter={(value) => `৳${value}`}
         />
         <Tooltip 
           contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          formatter={(value: any) => [`$${value}`, 'Revenue']}
+          formatter={(value: any) => [`৳${value}`, 'Revenue']}
         />
         <Line 
           type="monotone" 

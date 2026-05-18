@@ -25,19 +25,9 @@ interface Product {
   revenue: number;
 }
 
-const RECENT_ORDERS: Order[] = [
-  { id: "ORD-73A8B1", customer: "Sophia Chen", status: "processing", amount: 145.00, date: "2 mins ago" },
-  { id: "ORD-94C2F5", customer: "James Wilson", status: "shipped", amount: 320.50, date: "1 hour ago" },
-  { id: "ORD-21E8D9", customer: "Emma Thompson", status: "delivered", amount: 85.00, date: "3 hours ago" },
-  { id: "ORD-56B7A4", customer: "Michael Brown", status: "pending", amount: 210.00, date: "5 hours ago" },
-  { id: "ORD-88F4C2", customer: "Oliver Garcia", status: "shipped", amount: 450.00, date: "1 day ago" },
-];
+const RECENT_ORDERS: Order[] = [];
 
-const TOP_PRODUCTS: Product[] = [
-  { id: "p1", name: "Essential Organic T-Shirt", sold: 342, revenue: 15390 },
-  { id: "p2", name: "Heavyweight Boxy Hoodie", sold: 215, revenue: 25800 },
-  { id: "p3", name: "Structured Leather Tote", sold: 89, revenue: 22250 },
-];
+const TOP_PRODUCTS: Product[] = [];
 
 interface MetricCardProps {
   title: string;
@@ -86,10 +76,10 @@ export default function AdminDashboard() {
 
       {/* Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <MetricCard title="Total Revenue" value="$45,231.89" change="+20.1%" icon={DollarSign} trend="up" />
-        <MetricCard title="Orders" value="356" change="+12.5%" icon={ShoppingBag} trend="up" />
-        <MetricCard title="Active Customers" value="2,103" change="+5.2%" icon={Users} trend="up" />
-        <MetricCard title="Conversion Rate" value="3.24%" change="-1.1%" icon={ArrowUpRight} trend="down" />
+        <MetricCard title="Total Revenue" value="৳0.00" change="0%" icon={DollarSign} trend="up" />
+        <MetricCard title="Orders" value="0" change="0%" icon={ShoppingBag} trend="up" />
+        <MetricCard title="Active Customers" value="0" change="0%" icon={Users} trend="up" />
+        <MetricCard title="Conversion Rate" value="0.00%" change="0%" icon={ArrowUpRight} trend="up" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
