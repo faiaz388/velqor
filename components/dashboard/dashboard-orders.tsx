@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Package, Search, ExternalLink, RefreshCw } from "lucide-react";
+import { Package, ExternalLink, RefreshCw } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { createClient } from "@/lib/supabase/client";
 import { formatCurrency, cn } from "@/lib/utils";
@@ -61,7 +61,7 @@ export function DashboardOrders() {
       {orders.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-4 py-12 text-center text-foreground-secondary">
           <Package className="w-12 h-12 opacity-50" />
-          <p>You haven't placed any orders yet.</p>
+          <p>You haven&apos;t placed any orders yet.</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
