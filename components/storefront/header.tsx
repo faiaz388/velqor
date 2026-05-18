@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import { ShoppingCart, Search, Menu, User } from "lucide-react";
 import { useCart } from "@/lib/hooks/use-cart";
@@ -59,8 +60,8 @@ export function Header() {
           className="hidden md:flex items-center gap-2 text-foreground hover:text-accent transition-colors"
         >
           {profile?.photo_url ? (
-            <div className="w-6 h-6 rounded-full overflow-hidden border border-foreground/10 bg-white/5">
-              <img src={profile.photo_url} alt="Profile" className="w-full h-full object-cover" />
+            <div className="w-6 h-6 rounded-full overflow-hidden border border-foreground/10 bg-white/5 relative">
+              <Image src={profile.photo_url} alt="Profile" fill className="object-cover" />
             </div>
           ) : (
             <User className="w-5 h-5" />

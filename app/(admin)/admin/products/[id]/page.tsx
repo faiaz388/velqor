@@ -339,7 +339,7 @@ export default function EditProductPage() {
                 {/* New Image Previews */}
                 {newImages.map((img, i) => (
                   <div key={img.preview} className="relative aspect-square rounded-2xl overflow-hidden group border border-blue-500/20 shadow-sm">
-                    <img src={img.preview} alt="" className="w-full h-full object-cover" />
+                    <Image src={img.preview} alt="" fill unoptimized className="object-cover" />
                     <div className="absolute top-2 left-2 bg-blue-600 text-[8px] font-black text-white px-1.5 py-0.5 rounded uppercase">New</div>
                     <button type="button" onClick={() => removeNewImage(i)} className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all transform scale-75 group-hover:scale-100"><X className="w-3 h-3" /></button>
                   </div>

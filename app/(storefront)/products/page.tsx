@@ -23,6 +23,7 @@ interface Product {
   price: number;
   salePrice: number | null;
   imageTop: string;
+  categoryId?: string;
 }
 
 function ProductsContent() {
@@ -78,7 +79,7 @@ function ProductsContent() {
 
   React.useEffect(() => {
     if (selectedCategory) {
-      setFilteredProducts(products.filter(p => (p as any).categoryId === selectedCategory));
+      setFilteredProducts(products.filter(p => p.categoryId === selectedCategory));
     } else {
       setFilteredProducts(products);
     }

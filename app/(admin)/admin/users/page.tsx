@@ -21,11 +21,7 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = React.useState(true);
   const supabase = createClient();
 
-  React.useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
+  const fetchUsers = React.useCallback(async () => {
     const { data, error } = await supabase
       .from("profiles")
       .select("*")
@@ -35,7 +31,11 @@ export default function AdminUsersPage() {
       setUsers(data);
     }
     setLoading(false);
-  };
+  }, [supabase]);
+
+  React.useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const toggleBan = async (id: string, currentStatus: boolean) => {
     const { error } = await supabase
