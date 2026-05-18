@@ -16,11 +16,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'download.logo.wine',
-      },
-      {
-        protocol: 'https',
-        hostname: 'www.logo.wine',
+        hostname: '**',
       },
     ],
   },

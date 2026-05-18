@@ -160,6 +160,7 @@ export default function Home() {
               src={activeSlides[currentSlide].image}
               alt="Hero"
               fill
+              unoptimized
               className="object-cover"
               priority
             />
