@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Package, LifeBuoy, LogOut, Camera, Shield } from "lucide-react";
+import { User, Package, LifeBuoy, LogOut, Camera, Shield, LayoutDashboard } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/auth-context";
 import Image from "next/image";
@@ -117,6 +118,15 @@ export default function DashboardPage() {
                    </button>
                  );
                })}
+               {profile.role === 'admin' && (
+                 <Link 
+                   href="/admin"
+                   className="flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all text-sm font-medium text-accent hover:bg-accent/10 mb-1"
+                 >
+                   <LayoutDashboard className="w-4 h-4" />
+                   Admin Panel
+                 </Link>
+               )}
                <div className="h-px w-full bg-white/10 my-2"></div>
                <button
                   onClick={signOut}
