@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   username TEXT UNIQUE,
   email TEXT UNIQUE,
   photo_url TEXT,
-  role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+  role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin', 'customer')),
   is_banned BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   last_login TIMESTAMP WITH TIME ZONE,
@@ -116,6 +116,7 @@ CREATE TABLE IF NOT EXISTS public.orders (
   full_name TEXT,
   email TEXT,
   phone TEXT,
+  shipping_cost DECIMAL(10, 2) DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -159,13 +160,14 @@ ALTER TABLE public.support_tickets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ticket_messages ENABLE ROW LEVEL SECURITY;
 
 -- Orders RLS
-CREATE POLICY "Users can view their own orders" ON public.orders FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert their own orders" ON public.orders FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can view their own orders" ON public.orders FOR SELECT USING (auth.uid() = user_id OR user_id IS NULL AND true); -- Allow guest view if needed, but better to filter by email/phone in app
+CREATE POLICY "Anyone can insert orders" ON public.orders FOR INSERT WITH CHECK (true);
 CREATE POLICY "Admins can manage all orders" ON public.orders USING (public.is_admin());
+CREATE POLICY "Admins can insert any order" ON public.orders FOR INSERT WITH CHECK (public.is_admin());
 
 -- Order Items RLS
-CREATE POLICY "Users can view parts of their orders" ON public.order_items FOR SELECT USING (EXISTS (SELECT 1 FROM public.orders WHERE id = order_id AND user_id = auth.uid()));
-CREATE POLICY "Users can insert order items" ON public.order_items FOR INSERT WITH CHECK (EXISTS (SELECT 1 FROM public.orders WHERE id = order_id AND user_id = auth.uid()));
+CREATE POLICY "Users can view parts of their orders" ON public.order_items FOR SELECT USING (EXISTS (SELECT 1 FROM public.orders WHERE id = order_id AND (user_id = auth.uid() OR user_id IS NULL)));
+CREATE POLICY "Anyone can insert order items" ON public.order_items FOR INSERT WITH CHECK (true);
 CREATE POLICY "Admins can manage all order items" ON public.order_items USING (public.is_admin());
 
 -- Tickets RLS

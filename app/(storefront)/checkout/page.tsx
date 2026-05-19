@@ -124,7 +124,8 @@ export default function CheckoutPage() {
           shipping_address: `${address}, ${city}, ${postalCode}`,
           full_name: `${firstName} ${lastName}`,
           email: email,
-          phone: phone
+          phone: phone,
+          shipping_cost: shipping,
         });
 
       if (orderError) throw orderError;

@@ -39,6 +39,7 @@ interface Order {
   full_name: string;
   email: string;
   phone: string;
+  shipping_cost: number;
   created_at: string;
   items?: OrderItem[];
 }
@@ -362,11 +363,13 @@ export default function AdminOrdersPage() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-black/40 font-medium">Shipping Fee</span>
-                      <span className="font-bold text-green-600">Free</span>
+                      <span className={cn("font-bold", selectedOrder.shipping_cost > 0 ? "text-black" : "text-green-600")}>
+                        {selectedOrder.shipping_cost > 0 ? formatCurrency(selectedOrder.shipping_cost) : "Free"}
+                      </span>
                     </div>
                     <div className="flex justify-between text-base pt-2 border-t border-black/5">
-                      <span className="font-serif text-black">Total Paid</span>
-                      <span className="font-bold text-blue-600">{formatCurrency(selectedOrder.total_amount)}</span>
+                      <span className="font-serif text-black">Grand Total</span>
+                      <span className="font-bold text-blue-600">{formatCurrency(Number(selectedOrder.total_amount))}</span>
                     </div>
                   </div>
                 </div>
@@ -468,11 +471,11 @@ export default function AdminOrdersPage() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-black/60 font-medium">Shipping</span>
-                    <span className="font-bold text-green-600">Free</span>
+                    <span className="font-bold">{printingOrder.shipping_cost > 0 ? formatCurrency(printingOrder.shipping_cost) : "Free"}</span>
                   </div>
                   <div className="flex justify-between text-xl font-serif pt-4 border-t border-black mt-2">
-                    <span>Total Amount</span>
-                    <span className="font-bold">{formatCurrency(printingOrder.total_amount)}</span>
+                    <span>Grand Total</span>
+                    <span className="font-bold">{formatCurrency(Number(printingOrder.total_amount))}</span>
                   </div>
                 </div>
              </div>

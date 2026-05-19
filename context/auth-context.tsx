@@ -51,7 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             email: sessionUser.email,
             name: sessionUser.user_metadata?.name || 'New User',
             username: fallbackUsername,
-            role: 'customer',
+            role: 'user',
             photo_url: sessionUser.user_metadata?.avatar_url || ''
           }).select().single();
           
