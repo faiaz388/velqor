@@ -12,12 +12,14 @@ import { formatCurrency, cn } from "@/lib/utils";
 import { PAYMENT_METHODS } from "@/lib/payment-config";
 import { useToast } from "@/components/ui/toast";
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/context/auth-context";
 
 type CheckoutStep = "contact" | "shipping" | "payment";
 type MfsMethod = "bkash" | "nagad" | "rocket" | "cod";
 
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
+  const { user, profile } = useAuth();
   const { addToast } = useToast();
   const [step, setStep] = React.useState<CheckoutStep>("contact");
   const [selectedMethod, setSelectedMethod] = React.useState<MfsMethod>("bkash");
@@ -40,6 +42,7 @@ export default function CheckoutPage() {
   const [lastName, setLastName] = React.useState("");
   const [address, setAddress] = React.useState("");
   const [city, setCity] = React.useState("");
+  const [isEmailManual, setIsEmailManual] = React.useState(false);
   const [postalCode, setPostalCode] = React.useState("");
 
   const tax = subtotal * 0; 
@@ -60,6 +63,21 @@ export default function CheckoutPage() {
     }
     fetchPaymentSettings();
   }, [supabase]);
+
+  // Pre-fill user data
+  React.useEffect(() => {
+    if (user && !email) {
+      setEmail(user.email || "");
+    }
+    if (profile) {
+      if (profile.email && !email) setEmail(profile.email);
+      if (profile.name) {
+        const names = profile.name.split(" ");
+        if (!firstName) setFirstName(names[0]);
+        if (!lastName && names.length > 1) setLastName(names.slice(1).join(" "));
+      }
+    }
+  }, [user, profile]);
 
   const handleNext = (nextStep: CheckoutStep) => {
     // Validation
@@ -89,14 +107,55 @@ export default function CheckoutPage() {
 
     setIsProcessing(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    addToast({ title: "Order placed successfully!", type: "success" });
-    clearCart();
-    
-    // Redirect to success/tracking page (we'll build this next)
-    window.location.href = "/order-confirmed";
+    try {
+      const orderId = `VEL-${Math.floor(10000 + Math.random() * 90000)}`;
+      
+      // 1. Create Order
+      const { error: orderError } = await supabase
+        .from("orders")
+        .insert({
+          id: orderId,
+          user_id: user?.id || null, // Allow guest checkout but track if logged in
+          status: "pending",
+          total_amount: total,
+          payment_method: selectedMethod,
+          trx_id: transactionId || null,
+          sender_number: senderNumber || null,
+          shipping_address: `${address}, ${city}, ${postalCode}`,
+          full_name: `${firstName} ${lastName}`,
+          email: email,
+          phone: phone
+        });
+
+      if (orderError) throw orderError;
+
+      // 2. Create Order Items
+      const orderItems = items.map(item => ({
+        order_id: orderId,
+        product_id: item.productId,
+        product_title: item.title,
+        variant_name: item.variantName || null,
+        quantity: item.quantity,
+        unit_price: item.price
+      }));
+
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .insert(orderItems);
+
+      if (itemsError) throw itemsError;
+
+      addToast({ title: "Order placed successfully!", type: "success" });
+      clearCart();
+      
+      // Redirect to success page
+      window.location.href = "/order-confirmed";
+    } catch (error: any) {
+      console.error("Order error:", error);
+      addToast({ title: "Failed to place order. " + (error.message || ""), type: "error" });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const copyToClipboard = (text: string) => {
@@ -134,17 +193,40 @@ export default function CheckoutPage() {
               >
                 <div className="flex justify-between items-end">
                   <h2 className="text-2xl font-serif">Contact Information</h2>
-                  <span className="text-sm text-foreground-secondary">
-                    Already have an account? <Link href="/login" className="text-foreground underline">Log in</Link>
-                  </span>
+                  {!user && (
+                    <span className="text-sm text-foreground-secondary">
+                      Already have an account? <Link href="/login" className="text-foreground underline">Log in</Link>
+                    </span>
+                  )}
                 </div>
-                <Input 
-                  label="Email address" 
-                  type="email" 
-                  placeholder="example@mail.com" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
+
+                {user && !isEmailManual ? (
+                  <div className="flex items-center gap-4 p-4 bg-foreground/5 rounded-xl border border-foreground/5">
+                    <div className="w-10 h-10 rounded-full bg-blue-600/10 flex items-center justify-center text-blue-600 font-bold">
+                      {user.email?.[0].toUpperCase()}
+                    </div>
+                    <div className="flex-1 flex flex-col">
+                      <span className="text-[10px] uppercase tracking-wider font-bold text-foreground-secondary/60">Signed in as</span>
+                      <span className="text-sm font-medium">{user.email}</span>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-[10px] h-7 px-3 border-foreground/10 hover:bg-foreground/5"
+                      onClick={() => setIsEmailManual(true)}
+                    >
+                      Change
+                    </Button>
+                  </div>
+                ) : (
+                  <Input 
+                    label="Email address" 
+                    type="email" 
+                    placeholder="example@mail.com" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                )}
                 <Input 
                   label="Phone number" 
                   type="tel" 

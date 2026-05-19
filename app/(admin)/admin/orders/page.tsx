@@ -18,75 +18,101 @@ import { Button } from "@/components/ui/button";
 import { formatCurrency, cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/components/ui/toast";
+import { createClient } from "@/lib/supabase/client";
 
-const MOCK_ORDERS = [
-  { 
-    id: "VEL-82103", 
-    customer: "Atiq Rahman", 
-    email: "atiq@mail.com",
-    phone: "+880 1712-345678",
-    date: "Oct 12, 2023", 
-    status: "processing", 
-    amount: 145.00, 
-    method: "bKash",
-    trxId: "8J9K2L1M3N",
-    sender: "01712-345678",
-    address: "House 12, Road 4, Sector 7, Uttara, Dhaka",
-    items: [
-      { name: "Essential Organic T-Shirt", variant: "Black / XL", price: 45, qty: 2 },
-      { name: "Minimalist Watch", variant: "Silver", price: 55, qty: 1 }
-    ]
-  },
-  { 
-    id: "VEL-74129", 
-    customer: "Sarah Khan", 
-    email: "sarah@mail.com",
-    phone: "+880 1822-112233",
-    date: "Oct 12, 2023", 
-    status: "delivered", 
-    amount: 320.50, 
-    method: "Nagad",
-    trxId: "9P1O2I3U4Y",
-    sender: "01822-112233",
-    address: "Apartment 4B, Gulshan Lake View, Dhaka",
-    items: [
-      { name: "Heavyweight Boxy Hoodie", variant: "Grey / M", price: 120, qty: 2 },
-      { name: "Relaxed Linen Trousers", variant: "Stone", price: 80.5, qty: 1 }
-    ]
-  },
-  { 
-    id: "VEL-65122", 
-    customer: "Michael Brown", 
-    email: "mike@mail.com",
-    phone: "+880 1911-223344",
-    date: "Oct 11, 2023", 
-    status: "pending", 
-    amount: 210.00, 
-    method: "COD",
-    trxId: null,
-    sender: null,
-    address: "Road 10, Banani, Dhaka",
-    items: [
-      { name: "Structured Leather Tote", variant: "Tan", price: 210, qty: 1 }
-    ]
-  },
-];
+interface OrderItem {
+  product_title: string;
+  variant_name: string;
+  unit_price: number;
+  quantity: number;
+}
+
+interface Order {
+  id: string;
+  user_id: string | null;
+  status: string;
+  total_amount: number;
+  payment_method: string;
+  trx_id: string | null;
+  sender_number: string | null;
+  shipping_address: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  created_at: string;
+  items?: OrderItem[];
+}
+
+// Mock data removed in favor of Supabase fetching
 
 type OrderStatus = "pending" | "processing" | "shipped" | "delivered" | "cancelled";
 
 export default function AdminOrdersPage() {
   const { addToast } = useToast();
-  const [orders, setOrders] = React.useState(MOCK_ORDERS);
-  const [selectedOrder, setSelectedOrder] = React.useState<typeof MOCK_ORDERS[0] | null>(null);
-  const [printingOrder, setPrintingOrder] = React.useState<typeof MOCK_ORDERS[0] | null>(null);
+  const [orders, setOrders] = React.useState<Order[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [selectedOrder, setSelectedOrder] = React.useState<Order | null>(null);
+  const [printingOrder, setPrintingOrder] = React.useState<Order | null>(null);
   const [searchQuery, setSearchQuery] = React.useState("");
+  const supabase = createClient();
 
-  const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
-    addToast({ title: `Order ${orderId} updated to ${newStatus}`, type: "success" });
+  const fetchOrders = React.useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      addToast({ title: "Error fetching orders", type: "error" });
+    } else {
+      setOrders(data || []);
+    }
+    setLoading(false);
+  }, [supabase, addToast]);
+
+  React.useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  const fetchOrderItems = async (orderId: string) => {
+    const { data, error } = await supabase
+      .from("order_items")
+      .select("*")
+      .eq("order_id", orderId);
+
+    if (error) {
+      addToast({ title: "Error fetching order items", type: "error" });
+      return [];
+    }
+    return data;
   };
 
-  const handlePrint = (order: typeof MOCK_ORDERS[0]) => {
+  const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
+    const { error } = await supabase
+      .from("orders")
+      .update({ status: newStatus })
+      .eq("id", orderId);
+
+    if (error) {
+      addToast({ title: "Failed to update status", type: "error" });
+    } else {
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+      addToast({ title: `Order ${orderId} updated to ${newStatus}`, type: "success" });
+    }
+  };
+
+  const handleViewOrder = async (order: Order) => {
+    setSelectedOrder(order);
+    const items = await fetchOrderItems(order.id);
+    setSelectedOrder(prev => prev && prev.id === order.id ? { ...prev, items } : prev);
+  };
+
+  const handlePrint = async (order: Order) => {
+    if (!order.items) {
+      const items = await fetchOrderItems(order.id);
+      order = { ...order, items };
+    }
     setPrintingOrder(order);
     setTimeout(() => {
         window.print();
@@ -96,8 +122,8 @@ export default function AdminOrdersPage() {
 
   const filteredOrders = orders.filter(o => 
     o.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    o.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (o.trxId && o.trxId.toLowerCase().includes(searchQuery.toLowerCase()))
+    o.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (o.trx_id && o.trx_id.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
@@ -115,8 +141,14 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-black/5 shadow-sm flex flex-col min-h-0 flex-1 overflow-hidden print:hidden">
-        <div className="p-4 border-b border-black/5 flex flex-col md:flex-row gap-4 justify-between items-center bg-white/50">
+      <div className="bg-white rounded-xl border border-black/5 shadow-sm flex flex-col min-h-[400px] flex-1 overflow-hidden print:hidden">
+        {loading ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        ) : (
+          <>
+            <div className="p-4 border-b border-black/5 flex flex-col md:flex-row gap-4 justify-between items-center bg-white/50">
           <div className="relative w-full md:w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40" />
             <input 
@@ -150,20 +182,20 @@ export default function AdminOrdersPage() {
                   <td className="px-6 py-4 font-mono font-bold text-blue-600">{order.id}</td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
-                      <span className="font-semibold text-black">{order.customer}</span>
-                      <span className="text-xs text-black/40">{order.date}</span>
+                      <span className="font-semibold text-black">{order.full_name}</span>
+                      <span className="text-xs text-black/40">{new Date(order.created_at).toLocaleDateString()}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-bold text-black">{order.method}</span>
-                        {order.trxId && <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded-full text-[9px] font-black uppercase">MANUAL</span>}
+                        <span className="text-xs font-bold text-black uppercase">{order.payment_method}</span>
+                        {order.trx_id && <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded-full text-[9px] font-black uppercase">MANUAL</span>}
                       </div>
-                      {order.trxId ? (
+                      {order.trx_id ? (
                         <div className="text-[10px] space-y-0.5">
-                           <p className="text-black/60"><span className="font-bold">Trx:</span> {order.trxId}</p>
-                           <p className="text-black/60"><span className="font-bold">From:</span> {order.sender}</p>
+                           <p className="text-black/60"><span className="font-bold">Trx:</span> {order.trx_id}</p>
+                           <p className="text-black/60"><span className="font-bold">From:</span> {order.sender_number}</p>
                         </div>
                       ) : (
                         <span className="text-[10px] text-black/40 italic">Cash on Delivery</span>
@@ -193,11 +225,11 @@ export default function AdminOrdersPage() {
                       <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none opacity-50" />
                     </div>
                   </td>
-                  <td className="px-6 py-4 font-bold text-black">{formatCurrency(order.amount)}</td>
+                  <td className="px-6 py-4 font-bold text-black">{formatCurrency(order.total_amount)}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-center gap-2">
                       <button 
-                        onClick={() => setSelectedOrder(order)}
+                        onClick={() => handleViewOrder(order)}
                         className="p-2.5 hover:bg-black/5 rounded-full text-black/40 hover:text-blue-600 transition-all shadow-sm bg-white border border-black/5" 
                       >
                         <Eye className="w-4 h-4" />
@@ -215,6 +247,8 @@ export default function AdminOrdersPage() {
             </tbody>
           </table>
         </div>
+        </>
+        )}
       </div>
 
       {/* Order Details Modal Overlay */}
@@ -277,7 +311,7 @@ export default function AdminOrdersPage() {
                       <div className="p-2 bg-[#F5F5F0] rounded-lg mt-1"><MapPin className="w-4 h-4 text-black/40" /></div>
                       <div className="flex flex-col">
                         <span className="text-[10px] text-black/40 font-bold uppercase">Shipping Address</span>
-                        <span className="text-sm font-medium leading-relaxed">{selectedOrder.address}</span>
+                        <span className="text-sm font-medium leading-relaxed">{selectedOrder.shipping_address}</span>
                       </div>
                   </div>
                 </div>
@@ -286,18 +320,22 @@ export default function AdminOrdersPage() {
                 <div className="bg-white rounded-xl p-5 border border-black/5">
                   <h3 className="text-xs font-bold uppercase tracking-widest text-black/40 mb-4">Ordered Items</h3>
                   <div className="divide-y divide-black/5">
-                    {selectedOrder.items.map((item, i) => (
+                    {selectedOrder.items ? selectedOrder.items.map((item, i) => (
                       <div key={i} className="py-4 first:pt-0 last:pb-0 flex justify-between items-center">
                         <div className="flex flex-col">
-                          <span className="text-sm font-bold text-black">{item.name}</span>
-                          <span className="text-[10px] text-black/40 font-medium uppercase">{item.variant}</span>
+                          <span className="text-sm font-bold text-black">{item.product_title}</span>
+                          <span className="text-[10px] text-black/40 font-medium uppercase">{item.variant_name || 'Standard'}</span>
                         </div>
                         <div className="flex items-center gap-6">
-                           <span className="text-xs text-black/40 font-bold">×{item.qty}</span>
-                           <span className="text-sm font-bold text-black">{formatCurrency(item.price * item.qty)}</span>
+                           <span className="text-xs text-black/40 font-bold">×{item.quantity}</span>
+                           <span className="text-sm font-bold text-black">{formatCurrency(item.unit_price * item.quantity)}</span>
                         </div>
                       </div>
-                    ))}
+                    )) : (
+                      <div className="py-8 flex items-center justify-center">
+                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black/20"></div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -308,19 +346,19 @@ export default function AdminOrdersPage() {
                     <div className="flex items-center gap-3">
                       <CreditCard className="w-5 h-5 text-black/40" />
                       <div>
-                        <p className="text-sm font-bold text-black">{selectedOrder.method}</p>
-                        <p className="text-[10px] text-black/40 font-medium">{selectedOrder.trxId ? `TrxID: ${selectedOrder.trxId}` : 'Cash Payment'}</p>
+                        <p className="text-sm font-bold text-black uppercase">{selectedOrder.payment_method}</p>
+                        <p className="text-[10px] text-black/40 font-medium">{selectedOrder.trx_id ? `TrxID: ${selectedOrder.trx_id}` : 'Cash Payment'}</p>
                       </div>
                     </div>
-                    {selectedOrder.trxId && (
-                      <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[9px] font-black rounded uppercase">Verified</span>
+                    {selectedOrder.trx_id && (
+                       <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[9px] font-black rounded uppercase">Manual Pay</span>
                     )}
                   </div>
                   
                   <div className="space-y-2 pt-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-black/40 font-medium">Subtotal</span>
-                      <span className="font-bold text-black">{formatCurrency(selectedOrder.amount - 0)}</span>
+                      <span className="font-bold text-black">{formatCurrency(selectedOrder.total_amount)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-black/40 font-medium">Shipping Fee</span>
@@ -328,7 +366,7 @@ export default function AdminOrdersPage() {
                     </div>
                     <div className="flex justify-between text-base pt-2 border-t border-black/5">
                       <span className="font-serif text-black">Total Paid</span>
-                      <span className="font-bold text-blue-600">{formatCurrency(selectedOrder.amount)}</span>
+                      <span className="font-bold text-blue-600">{formatCurrency(selectedOrder.total_amount)}</span>
                     </div>
                   </div>
                 </div>
@@ -371,7 +409,7 @@ export default function AdminOrdersPage() {
                 <div className="text-right">
                   <h2 className="text-2xl font-serif mb-1">INVOICE</h2>
                   <p className="text-sm font-bold">{printingOrder.id}</p>
-                  <p className="text-xs text-black/60 mt-1">{printingOrder.date}</p>
+                  <p className="text-xs text-black/60 mt-1">{new Date(printingOrder.created_at).toLocaleDateString()}</p>
                 </div>
              </div>
 
@@ -379,15 +417,15 @@ export default function AdminOrdersPage() {
              <div className="grid grid-cols-2 gap-12 mb-12">
                 <div>
                   <h3 className="text-xs font-bold uppercase tracking-widest text-black/40 mb-3">BILL TO:</h3>
-                  <p className="text-lg font-bold mb-1">{printingOrder.customer}</p>
+                  <p className="text-lg font-bold mb-1">{printingOrder.full_name}</p>
                   <p className="text-sm text-black/60 mb-1">{printingOrder.email}</p>
                   <p className="text-sm text-black/60 mb-1">{printingOrder.phone}</p>
-                  <p className="text-sm text-black/60 mt-2 max-w-xs">{printingOrder.address}</p>
+                  <p className="text-sm text-black/60 mt-2 max-w-xs">{printingOrder.shipping_address}</p>
                 </div>
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-xs font-bold uppercase tracking-widest text-black/40 mb-1">PAYMENT METHOD:</h3>
-                    <p className="text-sm font-bold">{printingOrder.method} {printingOrder.trxId && `(TrxID: ${printingOrder.trxId})`}</p>
+                    <p className="text-sm font-bold uppercase">{printingOrder.payment_method} {printingOrder.trx_id && `(TrxID: ${printingOrder.trx_id})`}</p>
                   </div>
                   <div>
                     <h3 className="text-xs font-bold uppercase tracking-widest text-black/40 mb-1">ORDER STATUS:</h3>
@@ -407,15 +445,15 @@ export default function AdminOrdersPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-black/10">
-                  {printingOrder.items.map((item, i) => (
+                  {printingOrder.items?.map((item, i) => (
                     <tr key={i}>
                       <td className="py-4">
-                        <p className="font-bold">{item.name}</p>
-                        <p className="text-[10px] text-black/60 uppercase">{item.variant}</p>
+                        <p className="font-bold">{item.product_title}</p>
+                        <p className="text-[10px] text-black/60 uppercase">{item.variant_name || 'Standard'}</p>
                       </td>
-                      <td className="py-4 text-center">{item.qty}</td>
-                      <td className="py-4 text-right">{formatCurrency(item.price)}</td>
-                      <td className="py-4 text-right font-bold">{formatCurrency(item.price * item.qty)}</td>
+                      <td className="py-4 text-center">{item.quantity}</td>
+                      <td className="py-4 text-right">{formatCurrency(item.unit_price)}</td>
+                      <td className="py-4 text-right font-bold">{formatCurrency(item.unit_price * item.quantity)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -426,7 +464,7 @@ export default function AdminOrdersPage() {
                 <div className="w-64 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-black/60 font-medium">Subtotal</span>
-                    <span className="font-bold">{formatCurrency(printingOrder.amount)}</span>
+                    <span className="font-bold">{formatCurrency(printingOrder.total_amount)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-black/60 font-medium">Shipping</span>
@@ -434,7 +472,7 @@ export default function AdminOrdersPage() {
                   </div>
                   <div className="flex justify-between text-xl font-serif pt-4 border-t border-black mt-2">
                     <span>Total Amount</span>
-                    <span className="font-bold">{formatCurrency(printingOrder.amount)}</span>
+                    <span className="font-bold">{formatCurrency(printingOrder.total_amount)}</span>
                   </div>
                 </div>
              </div>
