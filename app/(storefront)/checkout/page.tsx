@@ -381,12 +381,15 @@ export default function CheckoutPage() {
                         <span className="font-medium text-sm">{PAYMENT_METHODS[method].name}</span>
                       </div>
                       {"logo" in PAYMENT_METHODS[method] && PAYMENT_METHODS[method].logo && (
-                        <div className="h-6 w-12 relative grayscale opacity-60">
+                        <div className={cn(
+                          "h-8 w-16 relative transition-all duration-300",
+                          selectedMethod === method ? "opacity-100 scale-110" : "opacity-40 grayscale"
+                        )}>
                            <Image 
                             src={PAYMENT_METHODS[method].logo as string} 
                             alt={PAYMENT_METHODS[method].name} 
                             fill 
-                            className={cn("object-contain", selectedMethod === method && "grayscale-0 opacity-100")} 
+                            className="object-contain" 
                           />
                         </div>
                       )}
