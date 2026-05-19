@@ -12,21 +12,21 @@ export const PAYMENT_METHODS: Record<string, PaymentMethod> = {
     number: "017XX-XXXXXX",
     type: "Personal (Send Money)",
     instructions: "Please send the total amount to the number above using the 'Send Money' option in your bKash app.",
-    logo: "https://freelogopng.com/images/all_img/1690557451bkash-logo-png.png"
+    logo: "https://www.logo.wine/a/logo/BKash/BKash-Logo.wine.svg"
   },
   nagad: {
     name: "Nagad",
     number: "018XX-XXXXXX",
     type: "Personal (Send Money)",
     instructions: "Please send the total amount to the number above using the 'Send Money' option in your Nagad app.",
-    logo: "https://freelogopng.com/images/all_img/1690557522nagad-logo-png.png"
+    logo: "https://www.logo.wine/a/logo/Nagad/Nagad-Logo.wine.svg"
   },
   rocket: {
     name: "Rocket",
     number: "019XX-XXXXXX",
     type: "Personal (Send Money)",
     instructions: "Please send the total amount to the number above using the 'Send Money' option in your Rocket app.",
-    logo: "https://freelogopng.com/images/all_img/1690557600rocket-logo-png.png"
+    logo: "https://www.logo.wine/a/logo/Dutch-Bangla_Bank/Dutch-Bangla_Bank-Rocket-Logo.wine.svg"
   },
   cod: {
     name: "Cash on Delivery",
