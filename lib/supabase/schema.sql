@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   username TEXT UNIQUE,
   email TEXT UNIQUE,
   photo_url TEXT,
-  role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin', 'customer')),
+  role TEXT DEFAULT 'customer' CHECK (role IN ('customer', 'admin')),
   is_banned BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   last_login TIMESTAMP WITH TIME ZONE,
@@ -85,7 +85,7 @@ BEGIN
     COALESCE(NEW.raw_user_meta_data->>'name', 'New User'),
     username_val,
     COALESCE(NEW.raw_user_meta_data->>'avatar_url', NEW.raw_user_meta_data->>'photo_url'),
-    'user'
+    'customer'
   )
   ON CONFLICT (id) DO NOTHING;
   
