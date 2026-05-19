@@ -77,7 +77,7 @@ export default function CheckoutPage() {
         if (!lastName && names.length > 1) setLastName(names.slice(1).join(" "));
       }
     }
-  }, [user, profile]);
+  }, [user, profile, email, firstName, lastName]);
 
   const handleNext = (nextStep: CheckoutStep) => {
     // Validation
@@ -150,9 +150,10 @@ export default function CheckoutPage() {
       
       // Redirect to success page
       window.location.href = "/order-confirmed";
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Order error:", error);
-      addToast({ title: "Failed to place order. " + (error.message || ""), type: "error" });
+      const message = error instanceof Error ? error.message : "An unknown error occurred";
+      addToast({ title: "Failed to place order. " + message, type: "error" });
     } finally {
       setIsProcessing(false);
     }
