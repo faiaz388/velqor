@@ -47,8 +47,8 @@ const fetchProductBySlug = async (slug: string): Promise<Product | null> => {
   return {
     id: product.id,
     title: product.title,
-    price: product.price,
-    salePrice: product.sale_price,
+    price: Number(product.price),
+    salePrice: product.sale_price ? Number(product.sale_price) : null,
     sku: product.sku,
     description: product.description,
     images: product.product_images?.length > 0 
@@ -212,7 +212,14 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
         <div className="flex flex-col flex-1">
           <h1 className="text-3xl md:text-5xl font-serif text-foreground mb-4">{product.title}</h1>
           <div className="flex items-center gap-4 mb-6">
-            <span className="text-2xl font-medium text-foreground">{formatCurrency(product.price)}</span>
+            {product.salePrice && product.salePrice < product.price ? (
+              <div className="flex items-baseline gap-3">
+                <span className="text-3xl font-bold text-destructive">{formatCurrency(product.salePrice)}</span>
+                <span className="text-xl text-foreground-secondary line-through opacity-50">{formatCurrency(product.price)}</span>
+              </div>
+            ) : (
+              <span className="text-3xl font-bold text-foreground">{formatCurrency(product.price)}</span>
+            )}
             <div className="flex items-center gap-2 border-l border-foreground/10 pl-4">
               <div className="flex text-accent">
                 {Array.from({ length: 5 }).map((_, i) => (
