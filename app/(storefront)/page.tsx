@@ -18,6 +18,7 @@ interface Product {
   salePrice: number | null;
   imageTop: string;
   badge?: string;
+  stockQuantity: number;
 }
 
 interface Category {
@@ -85,13 +86,15 @@ const fetchHomeData = async () => {
         title: string, 
         price: number, 
         sale_price: number | null, 
-        product_images: { image_url: string }[] 
+        product_images: { image_url: string }[],
+        stock_quantity: number 
       }) => ({
         id: p.id,
         slug: p.slug,
         title: p.title,
         price: p.price,
         salePrice: p.sale_price,
+        stockQuantity: p.stock_quantity || 0,
         imageTop: p.product_images?.[0]?.image_url || "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070&auto=format&fit=crop",
         badge: p.sale_price ? "SALE" : undefined
       })) || [],
@@ -311,7 +314,7 @@ export default function Home() {
                   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] } }
                 }}
               >
-                <ProductCard {...prod} />
+                <ProductCard {...prod} outOfStock={prod.stockQuantity === 0} />
               </motion.div>
             ))}
           </motion.div>

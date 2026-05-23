@@ -6,7 +6,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useCart } from "@/lib/hooks/use-cart";
 import { Button } from "@/components/ui/button";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, cn } from "@/lib/utils";
 
 export interface ProductCardProps {
   id: string;
@@ -65,6 +65,15 @@ export function ProductCard({
         {badge && (
           <div className="absolute top-4 left-4 z-20 bg-foreground text-background text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-sm">
             {badge}
+          </div>
+        )}
+
+        {outOfStock && (
+          <div className={cn(
+            "absolute z-20 bg-destructive text-white text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-sm",
+            badge ? "top-12 left-4" : "top-4 left-4"
+          )}>
+            Out of Stock
           </div>
         )}
         

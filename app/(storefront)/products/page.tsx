@@ -25,6 +25,7 @@ interface Product {
   imageTop: string;
   categoryId?: string;
   createdAt: string;
+  stockQuantity: number;
 }
 
 type SortOption = "featured" | "low-to-high" | "high-to-low";
@@ -68,6 +69,7 @@ function ProductsContent() {
           salePrice: p.sale_price,
           categoryId: p.category_id,
           createdAt: p.created_at,
+          stockQuantity: p.stock_quantity || 0,
           imageTop: p.product_images?.[0]?.image_url || "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070&auto=format&fit=crop",
         })) || [];
 
@@ -342,7 +344,7 @@ function ProductsContent() {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-x-8 md:gap-y-12">
               {MOCK_PRODUCTS.map((prod) => (
-                <ProductCard key={prod.id} {...prod} />
+                <ProductCard key={prod.id} {...prod} outOfStock={prod.stockQuantity === 0} />
               ))}
             </div>
           )}
