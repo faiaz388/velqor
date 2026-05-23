@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, cn } from "@/lib/utils";
 
-export default function OrderConfirmedPage() {
+function OrderConfirmedContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("id") || `VEL-${Math.floor(Math.random() * 90000) + 10000}`;
   const totalAmount = Number(searchParams.get("total")) || 0;
@@ -128,5 +128,17 @@ export default function OrderConfirmedPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function OrderConfirmedPage() {
+  return (
+    <React.Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <OrderConfirmedContent />
+    </React.Suspense>
   );
 }
