@@ -32,6 +32,7 @@ interface Product {
   images: string[];
   colors: ProductColor[];
   sizes: ProductSize[];
+  stockQuantity: number;
 }
 
 const fetchProductBySlug = async (slug: string): Promise<Product | null> => {
@@ -58,8 +59,9 @@ const fetchProductBySlug = async (slug: string): Promise<Product | null> => {
         id: v.id, name: v.value, hex: v.value
     })) || [],
     sizes: product.product_options?.find((o: { name: string }) => o.name.toLowerCase().includes("size"))?.product_option_values?.map((v: { id: string, value: string }) => ({
-        id: v.id, name: v.value, inStock: true
+        id: v.id, name: v.value, inStock: product.stock_quantity > 0
     })) || [],
+    stockQuantity: product.stock_quantity || 0,
   };
 };
 
@@ -315,8 +317,9 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
             size="lg" 
             className="w-full h-14 text-base"
             onClick={handleAddToCart}
+            disabled={product.stockQuantity === 0}
           >
-            Add to Bag — {formatCurrency((product.salePrice || product.price) * quantity)}
+            {product.stockQuantity === 0 ? "Out of Stock" : `Add to Bag — ${formatCurrency((product.salePrice || product.price) * quantity)}`}
           </Button>
           <div className="flex items-center gap-2 justify-center mt-4 text-xs text-foreground-secondary">
             <ShieldCheck className="w-4 h-4" /> Secure checkout

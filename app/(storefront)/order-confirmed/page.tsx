@@ -4,11 +4,15 @@ import * as React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Check, Package, Truck, Home, Calendar, CreditCard, Printer } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, cn } from "@/lib/utils";
 
 export default function OrderConfirmedPage() {
-  const [orderId] = React.useState(`VEL-${Math.floor(Math.random() * 90000) + 10000}`);
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get("id") || `VEL-${Math.floor(Math.random() * 90000) + 10000}`;
+  const totalAmount = Number(searchParams.get("total")) || 0;
+  const subtotalAmount = totalAmount; // For simplicity, we'll show the total since we don't have broken down costs easily available here
 
   const steps = [
     { id: "pending", label: "Confirmed", icon: Check, active: true },
@@ -85,15 +89,15 @@ export default function OrderConfirmedPage() {
                 <div className="space-y-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-foreground-secondary">Subtotal</span>
-                    <span>{formatCurrency(145)}</span>
+                    <span>{formatCurrency(subtotalAmount)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-foreground-secondary">Shipping</span>
-                    <span className="text-green-600 font-medium">Free</span>
+                    <span className="text-green-600 font-medium tracking-wide">Included</span>
                   </div>
-                  <div className="flex justify-between font-bold pt-2">
-                    <span>Total</span>
-                    <span>{formatCurrency(145)}</span>
+                  <div className="flex justify-between font-bold pt-2 border-t border-foreground/5 mt-2">
+                    <span className="text-base">Order Total</span>
+                    <span className="text-base">{formatCurrency(totalAmount)}</span>
                   </div>
                 </div>
               </div>

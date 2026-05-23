@@ -149,8 +149,8 @@ export default function CheckoutPage() {
       addToast({ title: "Order placed successfully!", type: "success" });
       clearCart();
       
-      // Redirect to success page
-      window.location.href = "/order-confirmed";
+      // Redirect to success page with information
+      window.location.href = `/order-confirmed?id=${orderId}&total=${total}`;
     } catch (error: unknown) {
       console.error("Order error:", error);
       const message = error instanceof Error ? error.message : "An unknown error occurred";
