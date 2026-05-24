@@ -21,6 +21,8 @@ import { useToast } from "@/components/ui/toast";
 import { createClient } from "@/lib/supabase/client";
 
 interface OrderItem {
+  id: string;
+  product_id: string;
   product_title: string;
   variant_name: string;
   unit_price: number;
@@ -90,6 +92,17 @@ export default function AdminOrdersPage() {
   };
 
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
+    const currentOrder = orders.find(o => o.id === orderId);
+    if (!currentOrder) return;
+    
+    const oldStatus = currentOrder.status as OrderStatus;
+    
+    // Statuses that imply stock should be deducted
+    const isConfirmed = (s: string) => ["processing", "shipped", "delivered"].includes(s);
+    
+    const shouldDeduct = !isConfirmed(oldStatus) && isConfirmed(newStatus);
+    const shouldRestore = isConfirmed(oldStatus) && (newStatus === "cancelled" || newStatus === "pending");
+
     const { error } = await supabase
       .from("orders")
       .update({ status: newStatus })
@@ -98,6 +111,42 @@ export default function AdminOrdersPage() {
     if (error) {
       addToast({ title: "Failed to update status", type: "error" });
     } else {
+      // Stock update logic
+      if (shouldDeduct || shouldRestore) {
+        try {
+          const items = currentOrder.items || await fetchOrderItems(orderId);
+          
+          for (const item of items) {
+             const multiplier = shouldDeduct ? -1 : 1;
+             const quantityChange = (item.quantity || 1) * multiplier;
+             
+             if (item.product_id) {
+                // Get current product stock for relative update
+                const { data: product, error: pError } = await supabase
+                  .from("products")
+                  .select("stock_quantity")
+                  .eq("id", item.product_id)
+                  .single();
+                  
+                if (product && !pError) {
+                  const newStock = Math.max(0, (product.stock_quantity || 0) + quantityChange);
+                  await supabase
+                    .from("products")
+                    .update({ stock_quantity: newStock })
+                    .eq("id", item.product_id);
+                }
+             }
+          }
+          addToast({ 
+            title: shouldDeduct ? "Stock Decanted" : "Stock Restored", 
+            description: `Inventory updated for Order ${orderId}`,
+            type: "info" 
+          });
+        } catch (err) {
+          console.error("Stock update error:", err);
+        }
+      }
+
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
       addToast({ title: `Order ${orderId} updated to ${newStatus}`, type: "success" });
     }
