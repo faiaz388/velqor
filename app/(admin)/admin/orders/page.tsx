@@ -113,37 +113,59 @@ export default function AdminOrdersPage() {
     } else {
       // Stock update logic
       if (shouldDeduct || shouldRestore) {
+        addToast({ title: "Syncing inventory...", type: "info" });
         try {
-          const items = currentOrder.items || await fetchOrderItems(orderId);
+          // Always try to fetch fresh items from the database to be safe
+          const items = await fetchOrderItems(orderId);
+          console.log(`Updating stock for Order ${orderId}:`, { shouldDeduct, shouldRestore, itemsCount: items?.length });
           
-          for (const item of items) {
-             const multiplier = shouldDeduct ? -1 : 1;
-             const quantityChange = (item.quantity || 1) * multiplier;
-             
-             if (item.product_id) {
-                // Get current product stock for relative update
-                const { data: product, error: pError } = await supabase
-                  .from("products")
-                  .select("stock_quantity")
-                  .eq("id", item.product_id)
-                  .single();
-                  
-                if (product && !pError) {
-                  const newStock = Math.max(0, (product.stock_quantity || 0) + quantityChange);
-                  await supabase
+          if (!items || items.length === 0) {
+            console.error("No items found for order:", orderId);
+            addToast({ title: "No items found to update stock", type: "info" });
+          } else {
+            let updatedCount = 0;
+            for (const item of items) {
+               const multiplier = shouldDeduct ? -1 : 1;
+               const quantityChange = (item.quantity || 1) * multiplier;
+               
+               console.log(`Processing item:`, item);
+               
+               if (item.product_id) {
+                  const { data: product, error: pError } = await supabase
                     .from("products")
-                    .update({ stock_quantity: newStock })
-                    .eq("id", item.product_id);
-                }
-             }
+                    .select("stock_quantity")
+                    .eq("id", item.product_id)
+                    .single();
+                    
+                  if (product && !pError) {
+                    const newStock = Math.max(0, (product.stock_quantity || 0) + quantityChange);
+                    const { error: uError } = await supabase
+                      .from("products")
+                      .update({ stock_quantity: newStock })
+                      .eq("id", item.product_id);
+                    
+                    if (!uError) updatedCount++;
+                  } else {
+                    console.error(`Could not find product ${item.product_id}`, pError);
+                  }
+               } else {
+                 console.warn("Item missing product_id:", item);
+               }
+            }
+            
+            if (updatedCount > 0) {
+              addToast({ 
+                title: shouldDeduct ? "Stock Deducted" : "Stock Restored", 
+                description: `Synchronized ${updatedCount} items for Order ${orderId}`,
+                type: "success" 
+              });
+            } else {
+              addToast({ title: "Inventory sync failed", description: "No products were found. Check logs.", type: "error" });
+            }
           }
-          addToast({ 
-            title: shouldDeduct ? "Stock Decanted" : "Stock Restored", 
-            description: `Inventory updated for Order ${orderId}`,
-            type: "info" 
-          });
         } catch (err) {
           console.error("Stock update error:", err);
+          addToast({ title: "System Error during inventory sync", type: "error" });
         }
       }
 
